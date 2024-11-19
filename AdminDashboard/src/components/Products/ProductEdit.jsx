@@ -183,10 +183,12 @@ const ProductEdit = (props) => {
         setFormFields((prevFields) => ({
           ...prevFields,
           ...productData,
+          category: productData.category?.id || "", // Lấy ID của category
+          sub_category: productData.sub_category?.id || "", // Lấy ID của sub_category
           images: imagesWithPublicId,
         }));
 
-        console.log("ratin", productData.rating);
+        console.log("rating", productData.rating);
         // Set giá trị ratingInput để hiển thị đúng rating hiện có
         setRatingInput(productData.rating || 0); // Giá trị mặc định là 0 nếu không có
       }

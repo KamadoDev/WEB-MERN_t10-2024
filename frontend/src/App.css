@@ -18,6 +18,48 @@ body {
   color: rgba(0, 0, 0, 0.8);
 }
 
+.headerSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+  opacity: 1;
+  font-style: italic;
+  transition: opacity 0.3s ease;
+}
+
+.search-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+
 a {
   text-decoration: none !important;
 }
@@ -466,9 +508,17 @@ nav .navPart2 ul li .submenu {
   -webkit-transition: all 0.15s cubic-bezier(0.28, 0.12, 0.22, 1);
   transition: all 0.15s cubic-bezier(0.28, 0.12, 0.22, 1);
 }
+nav .navPart2 ul li .submenu a:last-child button {
+  border-bottom: 1px solid transparent;
+}
 
+nav .navPart2 ul li .submenu a button {
+  border-bottom: 1px solid #0056b3;
+}
 nav .navPart2 ul li .submenu a button:hover {
-  background-color: #f1f1f1;
+  background-color: #0056b3;
+  color: #FFF !important;
+  border-bottom: 1px solid transparent;
 }
 
 nav .navPart2 ul li:hover .submenu {
@@ -680,7 +730,6 @@ nav .navPart2 ul li .submenu a button {
 .productItem {
   width: 100%;
   height: auto;
-  cursor: pointer;
   position: relative;
   background: #f1f1f1;
   border: 1px solid #0000001a;
@@ -1447,7 +1496,7 @@ footer .copyright ul li a svg {
 .productSize {
   width: 100%;
   height: auto;
-  padding: 25px 0px;
+  padding: 10px 0px;
 }
 .productSize ul li {
   margin-right: 10px !important;

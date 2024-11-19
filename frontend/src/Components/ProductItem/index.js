@@ -22,33 +22,40 @@ const ProductItem = (props) => {
     console.log(props.item);
   }, [props.item]);
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
+  };
+
   return (
     <>
       <div className={`item productItem ${props.itemView}`}>
-        <div className="imgWrapper">
-          <img
-            className="w-100"
-            src={props.item?.images[0].url}
-            alt={props.item?.name?.substr(0, 19) + "..."}
-            style={{ height: "250px" }}
-          />
+        <Link to={`/product/${props.item?.id}`}>
+          <div className="imgWrapper" style={{ width: "100%" }}>
+            <img
+              className="w-100"
+              src={props.item?.images[0].url}
+              alt={props.item?.name?.substr(0, 19) + "..."}
+              style={{ height: "250px" }}
+            />
 
-          {
-            props.item?.discount > 0 && (
+            {props.item?.discount > 0 && (
               <span className="badge badge-danger">
-                {props.item?.discount}% Off
+                Giảm {props.item?.discount}%
               </span>
-            )
-          }
-          <div className="actions">
-            <Button onClick={() => viewProductDetails(props.item?.id)}>
-              <TfiFullscreen />
-            </Button>
-            <Button>
-              <IoMdHeartEmpty style={{ fontSize: "20px" }} />
-            </Button>
+            )}
+            <div className="actions">
+              <Button onClick={() => viewProductDetails(props.item?.id)}>
+                <TfiFullscreen />
+              </Button>
+              <Button>
+                <IoMdHeartEmpty style={{ fontSize: "20px" }} />
+              </Button>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <div className="info">
           <Link to={`/product/${props.item?._id}`}>
@@ -67,10 +74,20 @@ const ProductItem = (props) => {
           />
 
           <div className="d-flex">
-            <span className="oldPrice">{props.item?.old_price}</span>
-            <span className="newPrice text-danger ml-2">
-              {props.item?.price}
-            </span>
+            {props.item?.old_price < props.item?.price ? (
+              <span className="newPrice text-danger ml-2">
+                {formatCurrency(props.item?.price)}
+              </span>
+            ) : (
+              <>
+                <span className="oldPrice">
+                  {formatCurrency(props.item?.old_price)}
+                </span>
+                <span className="newPrice text-danger ml-2">
+                  {formatCurrency(props.item?.price)}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>

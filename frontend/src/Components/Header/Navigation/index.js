@@ -82,7 +82,7 @@ const Navigation = () => {
               <ul className="list list-inline ml-auto">
                 <li className="list-inline-item">
                   <Link to="/">
-                    <Button>Home</Button>
+                    <Button>Trang chủ</Button>
                   </Link>
                 </li>
                 {context.categoryData
@@ -116,14 +116,14 @@ const Navigation = () => {
                       </li>
                     );
                   })}
-                <li className="list-inline-item">
+                {/* <li className="list-inline-item">
                   <Link to="/blog">
                     <Button>Blog</Button>
                   </Link>
-                </li>
+                </li> */}
                 <li className="list-inline-item">
                   <Link to="/contact">
-                    <Button>Contact Us</Button>
+                    <Button>Liên hệ</Button>
                   </Link>
                 </li>
               </ul>

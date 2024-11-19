@@ -113,7 +113,7 @@ const Home = () => {
                     className="filterTabs"
                   >
                     {/* Tab "All" */}
-                    <Tab key="all" className="item" label="All" />
+                    <Tab key="all" className="item" label="Tất cả" />
                     {context.categoryData?.map((item, index) => (
                       <Tab key={item.id} className="item" label={item.name} />
                     ))}
@@ -133,9 +133,9 @@ const Home = () => {
               {/* NEW PRODUCTS */}
               <div className="d-flex align-items-center mt-5">
                 <div className="info">
-                  <h3 className="mb-0 hd">NEW PRODUCTS</h3>
-                  <p className="text-title mb-0">
-                    New products with updated stocks.
+                  <h3 className="mb-0 hd">Sản phẩm mới</h3>
+                  <p className="text-title mb-0 mt-1 text-danger">
+                    Sản phẩm mới ưu đãi mới bạn ơi...!
                   </p>
                 </div>
                 <Box
@@ -155,7 +155,7 @@ const Home = () => {
                     className="filterTabs"
                   >
                     {/* Tab "All" */}
-                    <Tab key="all" className="item" label="All" />
+                    <Tab key="all" className="item" label="Tất cả" />
                     {context.categoryData?.map((item, index) => (
                       <Tab key={item.id} className="item" label={item.name} />
                     ))}

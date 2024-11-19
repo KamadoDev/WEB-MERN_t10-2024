@@ -1,8 +1,6 @@
 import Sidebar from "../../Components/Sidebar";
 import { Link, useParams } from "react-router-dom";
-import { TfiMenu } from "react-icons/tfi";
 import { BsGrid3X3GapFill } from "react-icons/bs";
-import { BsFillGridFill } from "react-icons/bs";
 import { TfiLayoutGrid4Alt } from "react-icons/tfi";
 import { Button } from "@mui/material";
 import { FaAngleDown } from "react-icons/fa6";
@@ -11,7 +9,6 @@ import MenuItem from "@mui/material/MenuItem";
 import { useEffect, useState } from "react";
 import ProductItem from "../../Components/ProductItem";
 import Pagination from "@mui/material/Pagination";
-import Stack from "@mui/material/Stack";
 import { getData } from "../../utils/api";
 
 const Listing = () => {
@@ -119,12 +116,6 @@ const Listing = () => {
 
               <div className="showBy mt-3 mb-3 d-flex align-items-center">
                 <div className="d-flex align-items-center btnWrapper">
-                  <Button
-                    className={productView === "one" && "act"}
-                    onClick={() => setProductView("one")}
-                  >
-                    <TfiMenu />
-                  </Button>
                   <Button
                     className={productView === "three" && "act"}
                     onClick={() => setProductView("three")}

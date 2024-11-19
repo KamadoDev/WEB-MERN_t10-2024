@@ -244,10 +244,86 @@ router.get("/cat", async (req, res) => {
   }
 });
 
+// sản phẩm liên quan 
+router.get("/related", async (req, res) => {
+  try {
+    const {
+      tag,       // Tag của sản phẩm hiện tại
+      catID,     // ID của category hoặc subcategory
+      perPage = 12, // Số sản phẩm trên mỗi trang (mặc định 12)
+      page = 1,  // Trang hiện tại (mặc định 1)
+    } = req.query;
+
+    // Kiểm tra tính hợp lệ của category/subcategory ID
+    let categoryId = null;
+    let subCategoryId = null;
+
+    const category = await CategoryModel.findById(catID);
+    if (category) {
+      categoryId = category._id;
+    } else {
+      const subCategory = await SubCategoryModel.findById(catID);
+      if (subCategory) {
+        subCategoryId = subCategory._id;
+      }
+    }
+
+    if (!categoryId && !subCategoryId) {
+      return res.status(404).json({
+        success: false,
+        message: "Category or SubCategory not found",
+      });
+    }
+
+    // Tạo bộ lọc MongoDB
+    const filter = {};
+
+    if (categoryId) filter.category = categoryId;
+    if (subCategoryId) filter.sub_category = subCategoryId;
+
+    // Lọc theo tag nếu có
+    if (tag) {
+      filter.tags = { $in: [tag] }; // Kiểm tra nếu tag nằm trong danh sách tags của sản phẩm
+    }
+
+    // Phân trang
+    const limit = Math.max(parseInt(perPage, 10), 1); // Đảm bảo `perPage >= 1`
+    const skip = Math.max((parseInt(page, 10) - 1) * limit, 0); // Đảm bảo `skip >= 0`
+
+    // Lấy danh sách sản phẩm
+    const relatedProducts = await ProductModel.find(filter)
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo
+      .skip(skip)
+      .limit(limit);
+
+    // Tính tổng số sản phẩm liên quan
+    const totalRelatedProducts = await ProductModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalRelatedProducts / limit);
+
+    return res.status(200).json({
+      success: true,
+      products: relatedProducts,
+      pagination: {
+        totalProducts: totalRelatedProducts,
+        perPage: limit,
+        currentPage: parseInt(page, 10),
+        totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching related products:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "An error occurred while fetching related products",
+    });
+  }
+});
+
+
 // Tìm sản phẩm theo ID
 router.get("/:id", async (req, res) => {
   try {
-    const product = await ProductModel.findById(req.params.id);
+    const product = await ProductModel.findById(req.params.id).populate(['category', 'sub_category']);
     if (!product) {
       return res.status(404).json({
         success: false,

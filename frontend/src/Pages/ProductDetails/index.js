@@ -3,330 +3,422 @@ import Rating from "@mui/material/Rating";
 import QuantityBox from "../../Components/QuantityBox";
 import { Button } from "@mui/material";
 import { BsCartPlusFill } from "react-icons/bs";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { MdOutlineCompareArrows } from "react-icons/md";
 import Tooltip from "@mui/material/Tooltip";
 import ProductItemSlide from "../../Components/ProductItemSlide";
 import RelatedProducts from "../../Components/RelatedProducts";
+import { getData } from "../../utils/api";
 
 const ProductDetails = () => {
+  const { id } = useParams();
   const [activeSize, setActiveSize] = useState(null);
+  const [activeColor, setActiveColor] = useState(null);
+  const [activeTag, setActiveTag] = useState(null);
+  const [selectedTag, setSelectedTag] = useState(null);
   const [activeTabs, setActiveTabs] = useState(0);
   const [valueRating, setValueRating] = useState(5);
+  const [product, setProduct] = useState([]);
+  const [relatedProduct, setRelatedProduct] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const isActive = (index) => {
-    setActiveSize(index);
+  const isActive = (type, index, value) => {
+    switch (type) {
+      case "size":
+        setActiveSize(index);
+        break;
+      case "color":
+        setActiveColor(index);
+        break;
+      case "tab":
+        setActiveTabs(index);
+        break;
+      case "tag":
+        setActiveTag(index);
+        setSelectedTag(value);
+        break;
+      default:
+        break;
+    }
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setLoading(true);
+    try {
+      getData(`/api/products/${id}`).then((data) => {
+        setProduct(data);
+        getData(
+          `/api/products/related?catID=${data.product.category.id}&tag=${
+            selectedTag || ""
+          }`
+        ).then((data) => {
+          const filteredData = data?.products?.filter((item) => item.id !== id);
+          console.log("Sản phẩm liên quan", filteredData);
+          setRelatedProduct(filteredData);
+        });
+      });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, selectedTag]);
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
+  };
+
   return (
     <>
       <section className="productDetails section">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-4 pl-5">
-              <ProductZoom />
-            </div>
-            <div className="col-md-8 pl-5 pr-5">
-              <h2 className="hd text-capitalize">
-                GESPO Peach Solid Mandarin Collar Half Sleeve Casual T-Shirt
-              </h2>
-              <ul className="list list-inline mb-0 d-flex align-items-center">
-                <li className="list-inline-item ">
-                  <div className="d-flex align-items-center ">
-                    <span className="text-gray mr-2">Brands:</span>
-                    <span className="text-drak">Apple</span>
-                  </div>
-                </li>
-                <li className="list-inline-item ">
-                  <div className="d-flex align-items-center">
-                    <Rating
-                      name="read-only"
-                      value={5}
-                      precision={0.5}
-                      size="small"
-                      readOnly
-                    />
-                    <span className="text-gray text-capitalize ml-2">
-                      {" "}
-                      1 Review
-                    </span>
-                  </div>
-                </li>
-              </ul>
-              <div className="d-flex mb-3">
-                <span className="oldPrice">$20.00</span>
-                <span className="newPrice text-danger ml-2">$14.00</span>
+        {loading ? (
+          <p>Không tìm thấy sản phẩm này!</p>
+        ) : (
+          <div className="container">
+            <div className="row">
+              <div className="col-md-4 pl-5">
+                <ProductZoom
+                  images={product?.product?.images}
+                  discount={product?.product?.discount}
+                />
               </div>
-              <span class="badge badge-span bg-success text-white">
-                In Stock
-              </span>
-
-              <p className="mt-3">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                cursus, orci sed condimentum facilisis, justo neque cursus
-                velit, in elementum mauris nunc vitae neque. Quisque non
-                condimentum consectetur dolor. Sed faucibus, purus at maximus
-                fermentum, justo nunc lobortis tellus, et efficitur est lectus
-                ut justo.
-              </p>
-
-              <div className="d-flex align-items-center productSize">
-                <span>Size / Weight:</span>
-                <ul className="list list-inline mb-0 pl-4 ">
-                  <li className="list-inline-item">
-                    <Link
-                      onClick={() => isActive(0)}
-                      className={`tag ${activeSize === 0 ? "active" : ""}`}
-                    >
-                      50g
-                    </Link>
+              <div className="col-md-8 pl-5 pr-5">
+                <h2 className="hd text-capitalize">{product?.product?.name}</h2>
+                <ul className="list list-inline mb-0 d-flex align-items-center">
+                  <li className="list-inline-item ">
+                    <div className="d-flex align-items-center ">
+                      <span className="text-gray mr-2">Thương hiệu:</span>
+                      <span className="text-drak badge badge-danger">
+                        {product?.product?.brand}
+                      </span>
+                    </div>
                   </li>
-                  <li className="list-inline-item">
-                    <Link
-                      onClick={() => isActive(1)}
-                      className={`tag ${activeSize === 1 ? "active" : ""}`}
-                    >
-                      50g
-                    </Link>
+                  <li className="list-inline-item ">
+                    <div className="d-flex align-items-center ">
+                      <span className="text-gray mr-2">Danh mục:</span>
+                      <span className="text-drak badge badge-info p-1">
+                        {product?.product?.category?.name}
+                      </span>
+                    </div>
                   </li>
-                  <li className="list-inline-item">
-                    <Link
-                      onClick={() => isActive(2)}
-                      className={`tag ${activeSize === 2 ? "active" : ""}`}
-                    >
-                      50g
-                    </Link>
-                  </li>
-                  <li className="list-inline-item">
-                    <Link
-                      onClick={() => isActive(3)}
-                      className={`tag ${activeSize === 3 ? "active" : ""}`}
-                    >
-                      50g
-                    </Link>
+                  <li className="list-inline-item ">
+                    <div className="d-flex align-items-center">
+                      <Rating
+                        name="read-only"
+                        value={parseInt(product?.product?.rating)}
+                        precision={0.5}
+                        size="small"
+                        readOnly
+                      />
+                      <span className="text-gray text-capitalize ml-2">
+                        {" "}
+                        {product?.product?.numberReviews > 0 &&
+                          product?.product?.numberReviews}
+                      </span>
+                    </div>
                   </li>
                 </ul>
-              </div>
+                <div className="d-flex my-3">
+                  {product?.product?.old_price < product?.product?.price ? (
+                    <span className="newPrice text-danger ml-2">
+                      {formatCurrency(product?.product?.price)}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="oldPrice">
+                        {formatCurrency(product?.product?.old_price)}
+                      </span>
+                      <span className="newPrice text-danger ml-2">
+                        {formatCurrency(product?.product?.price)}
+                      </span>
+                    </>
+                  )}
+                </div>
 
-              <div className="d-flex align-items-center mt-3">
-                <QuantityBox />
-                <Button className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round">
-                  <BsCartPlusFill />
-                  &nbsp; Add to cart
-                </Button>
-                <Tooltip title="Add to Wishlist" placement="top">
-                  <Button className="btn-blue btn-lg btn-big btn-circle ml-3">
-                    <FaRegHeart />
+                {product?.product?.productInStock <= 0 ? (
+                  <span className="badge badge-span bg-danger text-white">
+                    Out of stock
+                  </span>
+                ) : (
+                  <span className="badge badge-span bg-success text-white">
+                    In stock
+                  </span>
+                )}
+
+                <p className="mt-2 mb-0">
+                  Mô tả ngắn: {product?.product?.description.substr(0, 50) + "..."}
+                </p>
+
+                <div className="d-flex align-items-center productSize">
+                  <span>Size: </span>
+                  <ul className="list list-inline mb-0 pl-4">
+                    {product?.product?.size?.map((item, index) => (
+                      <li className="list-inline-item" key={index}>
+                        <Link
+                          onClick={() => isActive("size", index)}
+                          className={`tag ${
+                            activeSize === index ? "active" : ""
+                          }`}
+                        >
+                          {item}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="d-flex align-items-center productSize">
+                  <span>Màu: </span>
+                  <ul className="list list-inline mb-0 pl-4">
+                    {product?.product?.colors?.map((item, index) => (
+                      <li className="list-inline-item" key={index}>
+                        <Link
+                          onClick={() => isActive("color", index)}
+                          className={`tag ${
+                            activeColor === index ? "active" : ""
+                          }`}
+                        >
+                          {item}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="d-flex align-items-center mt-3">
+                  <QuantityBox />
+                  <Button className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round">
+                    <BsCartPlusFill />
+                    &nbsp; Add to cart
                   </Button>
-                </Tooltip>
-                <Tooltip title="Compare" placement="top">
-                  <Button className="btn-blue btn-lg btn-big btn-circle ml-3">
-                    <MdOutlineCompareArrows />
-                  </Button>
-                </Tooltip>
+                  <Tooltip title="Add to Wishlist" placement="top">
+                    <Button className="btn-blue btn-lg btn-circle ml-3">
+                      <FaRegHeart />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Compare" placement="top">
+                    <Button className="btn-blue btn-lg btn-circle ml-3">
+                      <MdOutlineCompareArrows />
+                    </Button>
+                  </Tooltip>
+                </div>
               </div>
             </div>
-          </div>
-          <br />
-          <div className="card mt-5 detailsPageTabs">
-            <div className="customTabs">
-              <ul className="list list-inline">
-                <li className="list-inline-item">
-                  <Button
-                    className={`${activeTabs === 0 && "active"}`}
-                    onClick={() => setActiveTabs(0)}
-                  >
-                    Description
-                  </Button>
-                </li>
-                <li className="list-inline-item">
-                  <Button
-                    className={`${activeTabs === 1 && "active"}`}
-                    onClick={() => setActiveTabs(1)}
-                  >
-                    Additional info
-                  </Button>
-                </li>
-                <li className="list-inline-item">
-                  <Button
-                    className={`${activeTabs === 2 && "active"}`}
-                    onClick={() => setActiveTabs(2)}
-                  >
-                    Reviews
-                  </Button>
-                </li>
-              </ul>
-              <br />
+            <br />
+            <div className="card mt-5 detailsPageTabs">
+              <div className="customTabs">
+                <ul className="list list-inline">
+                  <li className="list-inline-item">
+                    <Button
+                      className={`${activeTabs === 0 && "active"}`}
+                      onClick={() => isActive("tab", 0)}
+                    >
+                      Mô tả
+                    </Button>
+                  </li>
+                  <li className="list-inline-item">
+                    <Button
+                      className={`${activeTabs === 1 && "active"}`}
+                      onClick={() => isActive("tab", 1)}
+                    >
+                      Thông tin thêm
+                    </Button>
+                  </li>
+                  <li className="list-inline-item">
+                    <Button
+                      className={`${activeTabs === 2 && "active"}`}
+                      onClick={() => isActive("tab", 2)}
+                    >
+                      Đánh giá sản phẩm
+                    </Button>
+                  </li>
+                </ul>
+                <br />
 
-              {activeTabs === 0 && (
-                <div className="tabContent">
-                  <p>
-                    Description: Lorem ipsum dolor sit amet, consectetur
-                    adipiscing elit. Sed
-                  </p>
-                </div>
-              )}
-
-              {activeTabs === 1 && (
-                <div className="tabContent">
-                  <div className="table-responsive">
-                    <table className="table table-bordered">
-                      <tbody>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                        <tr>
-                          <th>Cao</th>
-                          <td>1m63</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                {activeTabs === 0 && (
+                  <div className="tabContent">
+                    {product?.product?.description}
                   </div>
-                </div>
-              )}
+                )}
 
-              {activeTabs === 2 && (
-                <div className="tabContent">
-                  <div className="row">
-                    <div className="col-md-8">
-                      <h3>Customer questions & answers</h3>
-                      <br />
-                      <div className="reviewBox mb-4 border-bottom">
-                        <div className="info">
-                          <div className="d-flex align-items-center w-100">
-                            <h5>Tajiro</h5>
-                            <div className="ml-auto">
-                              <Rating
-                                name="read-only"
-                                value={4.5}
-                                precision={0.5}
-                                size="small"
-                                readOnly
-                              />
-                            </div>
-                          </div>
-                          <h6 className="text-gray">2024-10-06</h6>
-                          <p>Good!</p>
-                        </div>
-                      </div>
-                      <div className="reviewBox mb-4 border-bottom">
-                        <div className="info">
-                          <div className="d-flex align-items-center w-100">
-                            <h5>Tajiro</h5>
-                            <div className="ml-auto">
-                              <Rating
-                                name="read-only"
-                                value={4.5}
-                                precision={0.5}
-                                size="small"
-                                readOnly
-                              />
-                            </div>
-                          </div>
-                          <h6 className="text-gray">2024-10-06</h6>
-                          <p>Good!</p>
-                        </div>
-                      </div>
-                      <div className="reviewBox mb-4 border-bottom">
-                        <div className="info">
-                          <div className="d-flex align-items-center w-100">
-                            <h5>Tajiro</h5>
-                            <div className="ml-auto">
-                              <Rating
-                                name="read-only"
-                                value={4.5}
-                                precision={0.5}
-                                size="small"
-                                readOnly
-                              />
-                            </div>
-                          </div>
-                          <h6 className="text-gray">2024-10-06</h6>
-                          <p>Good!</p>
-                        </div>
-                      </div>
-                      <div className="reviewBox mb-4 border-bottom">
-                        <div className="info">
-                          <div className="d-flex align-items-center w-100">
-                            <h5>Tajiro</h5>
-                            <div className="ml-auto">
-                              <Rating
-                                name="read-only"
-                                value={4.5}
-                                precision={0.5}
-                                size="small"
-                                readOnly
-                              />
-                            </div>
-                          </div>
-                          <h6 className="text-gray">2024-10-06</h6>
-                          <p>Good!</p>
-                        </div>
-                      </div>
-
-                      <form className="reviewForm">
-                        <h4>Your Review Here!</h4>
-                        <div className="form-group">
-                          <textarea
-                            className="form-control shadow"
-                            placeholder="Write a Review"
-                            name="review"
-                          ></textarea>
-                        </div>
-                        <div className="row">
-                          <div className="col-md-6">
-                            <div className="form-group">
-                              <Rating
-                                name="simple-controlled"
-                                precision={0.5}
-                                value={valueRating}
-                                onChange={(event, newValue) => {
-                                  setValueRating(newValue);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <Button className="btn-blue btn-lg btn-big btn-round ">
-                            Send Your Review
-                          </Button>
-                        </div>
-                      </form>
+                {activeTabs === 1 && (
+                  <div className="tabContent">
+                    <div className="table-responsive">
+                      <table className="table table-bordered">
+                        <tbody>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                          <tr>
+                            <th>Cao</th>
+                            <td>1m63</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {activeTabs === 2 && (
+                  <div className="tabContent">
+                    <div className="row">
+                      <div className="col-md-8">
+                        <h3>Customer questions & answers</h3>
+                        <br />
+                        <div className="reviewBox mb-4 border-bottom">
+                          <div className="info">
+                            <div className="d-flex align-items-center w-100">
+                              <h5>Tajiro</h5>
+                              <div className="ml-auto">
+                                <Rating
+                                  name="read-only"
+                                  value={4.5}
+                                  precision={0.5}
+                                  size="small"
+                                  readOnly
+                                />
+                              </div>
+                            </div>
+                            <h6 className="text-gray">2024-10-06</h6>
+                            <p>Good!</p>
+                          </div>
+                        </div>
+                        <div className="reviewBox mb-4 border-bottom">
+                          <div className="info">
+                            <div className="d-flex align-items-center w-100">
+                              <h5>Tajiro</h5>
+                              <div className="ml-auto">
+                                <Rating
+                                  name="read-only"
+                                  value={4.5}
+                                  precision={0.5}
+                                  size="small"
+                                  readOnly
+                                />
+                              </div>
+                            </div>
+                            <h6 className="text-gray">2024-10-06</h6>
+                            <p>Good!</p>
+                          </div>
+                        </div>
+                        <div className="reviewBox mb-4 border-bottom">
+                          <div className="info">
+                            <div className="d-flex align-items-center w-100">
+                              <h5>Tajiro</h5>
+                              <div className="ml-auto">
+                                <Rating
+                                  name="read-only"
+                                  value={4.5}
+                                  precision={0.5}
+                                  size="small"
+                                  readOnly
+                                />
+                              </div>
+                            </div>
+                            <h6 className="text-gray">2024-10-06</h6>
+                            <p>Good!</p>
+                          </div>
+                        </div>
+                        <div className="reviewBox mb-4 border-bottom">
+                          <div className="info">
+                            <div className="d-flex align-items-center w-100">
+                              <h5>Tajiro</h5>
+                              <div className="ml-auto">
+                                <Rating
+                                  name="read-only"
+                                  value={4.5}
+                                  precision={0.5}
+                                  size="small"
+                                  readOnly
+                                />
+                              </div>
+                            </div>
+                            <h6 className="text-gray">2024-10-06</h6>
+                            <p>Good!</p>
+                          </div>
+                        </div>
+
+                        <form className="reviewForm">
+                          <h4>Your Review Here!</h4>
+                          <div className="form-group">
+                            <textarea
+                              className="form-control shadow"
+                              placeholder="Write a Review"
+                              name="review"
+                            ></textarea>
+                          </div>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="form-group">
+                                <Rating
+                                  name="simple-controlled"
+                                  precision={0.5}
+                                  value={valueRating}
+                                  onChange={(event, newValue) => {
+                                    setValueRating(newValue);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="form-group">
+                            <Button className="btn-blue btn-lg btn-big btn-round ">
+                              Send Your Review
+                            </Button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+            <div className="d-flex mt-5 align-items-center productSize">
+              <span>Tags: </span>
+              <ul className="list list-inline mb-0 pl-4">
+                {product?.product?.tags?.map((item, index) => (
+                  <li className="list-inline-item" key={index}>
+                    <Link
+                      onClick={() => isActive("tag", index, item)}
+                      className={`tag ${activeTag === index ? "active" : ""}`}
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <RelatedProducts title="Sản phẩm liên quan" />
+
+            {/* <RelatedProducts title="RECENTLY VIEW PRODUCTS" /> */}
           </div>
-
-          <RelatedProducts title="RELATED PRODUCTS"/>
-
-          <RelatedProducts title="RECENTLY VIEW PRODUCTS"/>
-          
-        </div>
+        )}
       </section>
     </>
   );
