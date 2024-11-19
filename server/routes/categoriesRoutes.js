@@ -1,7 +1,6 @@
 const { CategoryModel } = require("../models/CategoryModel");
 const express = require("express");
 const router = express.Router();
-const validateObjectId = require("../middlewares/validateObjectId");
 const pLimit = require("p-limit");
 const cloudinary = require("../cloudinaryConfig");
 const upload = require("../middlewares/multer");
@@ -9,8 +8,6 @@ const fs = require("fs");
 const path = require("path");
 const { SubCategoryModel } = require("../models/SubCategoryModel");
 const { ProductModel } = require("../models/ProductModel");
-
-const { error } = require("console");
 
 // Lấy tất cả Category với phân trang
 router.get("/", async (req, res) => {

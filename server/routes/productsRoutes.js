@@ -319,7 +319,6 @@ router.get("/related", async (req, res) => {
   }
 });
 
-
 // Tìm sản phẩm theo ID
 router.get("/:id", async (req, res) => {
   try {
