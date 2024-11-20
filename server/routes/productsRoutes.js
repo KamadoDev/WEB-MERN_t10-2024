@@ -9,9 +9,10 @@ const pLimit = require("p-limit");
 const cloudinary = require("../cloudinaryConfig");
 const upload = require("../middlewares/multer");
 const fs = require("fs");
+const { verifyToken, checkAdminOrOwner } = require("../helper/authHelpers");
 
 // Lấy tất cả sản phẩm
-router.get("/", async (req, res) => {
+router.get("/", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const perPage = 12;
@@ -244,14 +245,14 @@ router.get("/cat", async (req, res) => {
   }
 });
 
-// sản phẩm liên quan 
+// sản phẩm liên quan
 router.get("/related", async (req, res) => {
   try {
     const {
-      tag,       // Tag của sản phẩm hiện tại
-      catID,     // ID của category hoặc subcategory
+      tag, // Tag của sản phẩm hiện tại
+      catID, // ID của category hoặc subcategory
       perPage = 12, // Số sản phẩm trên mỗi trang (mặc định 12)
-      page = 1,  // Trang hiện tại (mặc định 1)
+      page = 1, // Trang hiện tại (mặc định 1)
     } = req.query;
 
     // Kiểm tra tính hợp lệ của category/subcategory ID
@@ -314,7 +315,8 @@ router.get("/related", async (req, res) => {
     console.error("Error fetching related products:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "An error occurred while fetching related products",
+      message:
+        error.message || "An error occurred while fetching related products",
     });
   }
 });
@@ -322,7 +324,10 @@ router.get("/related", async (req, res) => {
 // Tìm sản phẩm theo ID
 router.get("/:id", async (req, res) => {
   try {
-    const product = await ProductModel.findById(req.params.id).populate(['category', 'sub_category']);
+    const product = await ProductModel.findById(req.params.id).populate([
+      "category",
+      "sub_category",
+    ]);
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -345,7 +350,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Xóa sản phẩm
-router.delete("/:id", validateObjectId, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await ProductModel.findById(productId);

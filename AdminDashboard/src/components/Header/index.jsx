@@ -10,11 +10,14 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import PersonAdd from "@mui/icons-material/PersonAdd";
 import SearchBox from "../SearchBox";
+import { MyContext } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const context = useContext(MyContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -23,6 +26,26 @@ const Header = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    // Xóa token và thông tin người dùng
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+
+    // Cập nhật trạng thái login
+    context.setIsLogin(false);
+    context.setUserData({});
+    context.setMessage("Đăng xuất thành công");
+    context.setTypeMessage("success");
+    context.setOpen(true);
+    setTimeout(() => {
+      // Chuyển hướng về trang login
+      navigate("/authen/login");
+    }, 1000);
+  };
+
   return (
     <>
       <header className="fixed shadow-sm top-0 right-0 bg-white py-3 z-[100] flex items-center justify-between px-4">
@@ -40,10 +63,13 @@ const Header = () => {
               </Button>
             </li>
             <li>
-              <div className="myAcc" onClick={handleClick}>
-                <UserImage />
+              <div className="d-flex myAcc" onClick={handleClick}>
+                <UserImage avatar={context.userData?.avatar} />
+                <div>
+                  <h5 className="text-sm mb-1">{context.userData?.username}</h5>
+                  <p>{context.userData?.phone}</p>
+                </div>
               </div>
-
               <Menu
                 anchorEl={anchorEl}
                 id="account-menu"
@@ -88,19 +114,7 @@ const Header = () => {
                   <Avatar /> My account
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleClose}>
-                  <ListItemIcon>
-                    <PersonAdd fontSize="small" />
-                  </ListItemIcon>
-                  Add another account
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                  <ListItemIcon>
-                    <Settings fontSize="small" />
-                  </ListItemIcon>
-                  Settings
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
                     <Logout fontSize="small" />
                   </ListItemIcon>

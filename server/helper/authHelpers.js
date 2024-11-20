@@ -7,7 +7,9 @@ require("dotenv").config();
 const isValidEmail = (email) => {
   return validator.isEmail(email);
 };
-
+const isValidPhone = (phone) => {
+  return validator.isMobilePhone(phone, "vi-VN"); // Kiểm tra định dạng số điện thoại Việt Nam
+};
 // Kiểm tra độ dài mật khẩu hợp lệ
 const isValidPassword = (password) => {
   const errors = [];
@@ -55,10 +57,14 @@ const checkPassword = async (password, hashedPassword) => {
 
 // Tạo JWT token
 const generateToken = (user) => {
+  const expirationTime = user.rememberMe
+    ? "7d"
+    : process.env.TOKEN_EXPIRATION || "1h"; // Nếu rememberMe là true thì hết hạn sau 7 ngày, ngược lại dùng giá trị mặc định 1 giờ
+
   return jwt.sign(
-    { id: user._id, username: user.username },
+    { id: user._id, username: user.username, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.TOKEN_EXPIRATION || "1h" }
+    { expiresIn: expirationTime } // Sử dụng expirationTime tùy theo rememberMe
   );
 };
 
@@ -77,6 +83,7 @@ const verifyToken = (req, res, next) => {
     // Giải mã token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // Lưu thông tin người dùng vào req.user
+    console.log(decoded); //
     next(); // Tiếp tục với các middleware hoặc route handler tiếp theo
   } catch (error) {
     return res.status(401).json({
@@ -123,9 +130,43 @@ const authJwt = () => {
   };
 };
 
+const isAdmin = (req, res, next) => {
+  try {
+    // Lấy token từ header
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Không có token xác thực.",
+      });
+    }
+
+    // Giải mã token để lấy thông tin người dùng
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Kiểm tra vai trò (role) của người dùng
+    if (decoded.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền truy cập.",
+      });
+    }
+
+    // Gắn thông tin user vào request để sử dụng sau này
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Token không hợp lệ hoặc đã hết hạn.",
+    });
+  }
+};
+
 module.exports = {
   hashPassword,
   checkPassword,
+  isValidPhone,
   verifyToken,
   generateToken,
   handleError,
@@ -133,4 +174,5 @@ module.exports = {
   isValidPassword,
   checkAdminOrOwner,
   authJwt,
+  isAdmin,
 };

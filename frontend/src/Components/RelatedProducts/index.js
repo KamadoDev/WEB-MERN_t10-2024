@@ -22,34 +22,18 @@ const RelatedProducts = (props) => {
           slidesPerView={6}
           spaceBetween={5}
           navigation={true}
-          // autoplay={{ delay: 2500, disableOnInteraction: false }}
+          autoplay={{ delay: 2500, disableOnInteraction: false }}
           modules={[Autoplay, Navigation]}
           className="mySwiper"
         >
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
-          <SwiperSlide>
-            <ProductItem />
-          </SwiperSlide>
+          {props?.data?.length !== 0 &&
+            props?.data?.map((item, index) => {
+              return (
+                <SwiperSlide key={index}>
+                  <ProductItem item={item} />
+                </SwiperSlide>
+              );
+            })}
         </Swiper>
       </div>
     </>

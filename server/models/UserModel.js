@@ -8,17 +8,6 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please fill a valid email address",
-      ],
-    },
     password: {
       type: String,
       required: true,
@@ -27,6 +16,13 @@ const UserSchema = new mongoose.Schema(
     fullName: {
       type: String,
       trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      unique: true,
+      match: [/^\d{10,15}$/, "Số điện thoại không hợp lệ."], // Yêu cầu số từ 10-15 ký tự
+      required: true,
     },
     avatar: {
       type: String,
@@ -41,6 +37,7 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    rememberMe: { type: Boolean, default: false },
     createdAt: {
       type: Date,
       default: Date.now,

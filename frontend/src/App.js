@@ -27,32 +27,39 @@ function App() {
   const [productData, setProductData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [subCategoryData, setSubCategoryData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getCountry("https://countriesnow.space/api/v0.1/countries");
 
     getData("/api/category").then((data) => {
       console.log(data);
       setCategoryData(data.categories);
+      setLoading(false);
     });
 
     getData("/api/subcategory").then((data) => {
       console.log(data);
       setSubCategoryData(data.subcategories);
+      setLoading(false);
     });
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     isOpenProductModal.open === true &&
       getData(`/api/products/${isOpenProductModal.id}`).then((data) => {
         console.log(data);
         setProductData(data);
+        setLoading(false);
       });
   }, [isOpenProductModal]);
 
   const getCountry = async (url) => {
     await axios.get(url).then((res) => {
       setCountryList(res.data.data);
+      setLoading(false);
     });
   };
 
@@ -70,6 +77,8 @@ function App() {
     setCategoryData,
     subCategoryData,
     setSubCategoryData,
+    loading,
+    setLoading,
   };
   return (
     <BrowserRouter>

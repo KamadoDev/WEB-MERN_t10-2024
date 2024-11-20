@@ -21,7 +21,7 @@ body {
   font-weight: 500;
   font-size: 16px;
   text-decoration: none;
-  transition: all .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
   color: #000;
   width: 150px;
   overflow: hidden;
@@ -128,7 +128,7 @@ img {
 }
 
 .space {
-  margin-top: 100px;
+  margin-top: 130px;
 }
 
 .main .sidebarWrapper .sidebar {
@@ -478,7 +478,40 @@ header .part2 button svg {
 
 .AuthSection {
   height: 100vh;
-  background-color: #ffffff;
+  background: linear-gradient(180deg, #0099ff 0%, #33ccff 100%);
+}
+
+.AuthSection .css-1yafmis-MuiFormLabel-root-MuiInputLabel-root {
+  color: #FFF !important;
+}
+
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+  animation-name: fall, sway;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-play-state: running;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+  }
 }
 
 .AuthSection .header {

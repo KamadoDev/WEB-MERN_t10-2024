@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Header from "./components/Header";
@@ -24,6 +24,33 @@ const App = () => {
   const [Message, setMessage] = useState("");
   const [TypeMessage, setTypeMessage] = useState("");
   const [open, setOpen] = useState(false);
+  const [userData, setUserData] = useState({
+    username: "",
+    fullName: "",
+    userId: "",
+    avatar: "",
+  });
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (token) {
+      setIsLogin(true);
+      const userFromLocalStorage = localStorage.getItem("user");
+      const userFromSessionStorage = sessionStorage.getItem("user");
+
+      const user = userFromLocalStorage
+        ? JSON.parse(userFromLocalStorage)
+        : userFromSessionStorage
+        ? JSON.parse(userFromSessionStorage)
+        : null;
+      setUserData(user);
+    } else {
+      setIsLogin(false);
+      navigate("/authen/login");
+    }
+  }, [navigate]);
 
   const handleOpenModal = () => {
     setTimeout(() => {
@@ -50,64 +77,58 @@ const App = () => {
     TypeMessage,
     setOpen,
     open,
+    userData,
+    setUserData,
   };
 
   return (
     <MyContext.Provider value={values}>
-      <BrowserRouter>
-        <section className="main flex">
-          {isShowHeaderFooter === false && (
-            <div className="sidebarWrapper w-[15%]">
-              <Sidebar />
-            </div>
-          )}
-          <div
-            className={` ${
-              isShowHeaderFooter === true
-                ? "w-[100%]"
-                : "content_right w-[85%] px-3"
-            } `}
-          >
-            {isShowHeaderFooter === false && (
-              <>
-                <Header />
-                <div className="space"></div>
-              </>
-            )}
-
-            <Routes>
-              <Route path="/" exact={true} element={<Dashboard />} />
-              {/* Product */}
-              <Route path="/products" element={<ProductsLayout />}>
-                <Route
-                  path="list"
-                  element={<ProductsList title="Danh sách" />}
-                />
-                <Route path="create" element={<ProductCreate />} />
-              </Route>
-              <Route path="/category" element={<CategoriesLayout />}>
-                <Route
-                  path="list"
-                  element={<CategoryList title="Danh sách" />}
-                />
-                <Route path="create" element={<CategoryCreate />} />
-              </Route>
-              <Route path="/subcategory" element={<CategoriesLayout />}>
-                <Route
-                  path="list"
-                  element={<SubCategoryList title="Danh sách" />}
-                />
-                <Route path="create" element={<SubCategoryCreate />} />
-              </Route>
-              <Route path="/authen" element={<AuthLayout />}>
-                <Route path="login" element={<SignIn />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="otp" element={<OPTpage />} />
-              </Route>
-            </Routes>
+      <section className="main flex">
+        {isShowHeaderFooter === false && (
+          <div className="sidebarWrapper w-[15%]">
+            <Sidebar />
           </div>
-        </section>
-      </BrowserRouter>
+        )}
+        <div
+          className={` ${
+            isShowHeaderFooter === true
+              ? "w-[100%]"
+              : "content_right w-[85%] px-3"
+          } `}
+        >
+          {isShowHeaderFooter === false && (
+            <>
+              <Header />
+              <div className="space"></div>
+            </>
+          )}
+
+          <Routes>
+            <Route path="/" exact={true} element={<Dashboard />} />
+            {/* Product */}
+            <Route path="/products" element={<ProductsLayout />}>
+              <Route path="list" element={<ProductsList title="Danh sách" />} />
+              <Route path="create" element={<ProductCreate />} />
+            </Route>
+            <Route path="/category" element={<CategoriesLayout />}>
+              <Route path="list" element={<CategoryList title="Danh sách" />} />
+              <Route path="create" element={<CategoryCreate />} />
+            </Route>
+            <Route path="/subcategory" element={<CategoriesLayout />}>
+              <Route
+                path="list"
+                element={<SubCategoryList title="Danh sách" />}
+              />
+              <Route path="create" element={<SubCategoryCreate />} />
+            </Route>
+            <Route path="/authen" element={<AuthLayout />}>
+              <Route path="login" element={<SignIn />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="otp" element={<OPTpage />} />
+            </Route>
+          </Routes>
+        </div>
+      </section>
     </MyContext.Provider>
   );
 };

@@ -168,81 +168,85 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Thêm mới category
-router.post("/create", upload.single("file"), async (req, res) => {
-  try {
-    const { name, color, type } = req.body;
+router.post(
+  "/create",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { name, color, type } = req.body;
 
-    // Kiểm tra các trường bắt buộc
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Tên danh mục là bắt buộc",
-        type: "error",
-      });
-    }
-    if (!color) {
-      return res.status(400).json({
-        success: false,
-        message: "Nhập mã màu nền cho danh mục",
-        type: "error",
-      });
-    }
-    if (!type) {
-      return res.status(400).json({
-        success: false,
-        message: "Nhập loại cho danh mục",
-        type: "error",
-      });
-    }
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Hình là bắt buộc",
-        type: "error",
-      });
-    }
-
-    // Giới hạn tải ảnh lên Cloudinary
-    const limit = pLimit(1);
-    const imageUpload = await limit(async () => {
-      const result = await cloudinary.uploader.upload(req.file.path);
-
-      // Xóa file tạm sau khi tải lên Cloudinary
-      if (req.file && req.file.path) {
-        fs.unlink(req.file.path, (err) => {
-          if (err) console.error("Error deleting temporary file:", err);
+      // Kiểm tra các trường bắt buộc
+      if (!name) {
+        return res.status(400).json({
+          success: false,
+          message: "Tên danh mục là bắt buộc",
+          type: "error",
+        });
+      }
+      if (!color) {
+        return res.status(400).json({
+          success: false,
+          message: "Nhập mã màu nền cho danh mục",
+          type: "error",
+        });
+      }
+      if (!type) {
+        return res.status(400).json({
+          success: false,
+          message: "Nhập loại cho danh mục",
+          type: "error",
+        });
+      }
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Hình là bắt buộc",
+          type: "error",
         });
       }
 
-      return {
-        public_id: result.public_id,
-        url: result.secure_url,
-      };
-    });
+      // Giới hạn tải ảnh lên Cloudinary
+      const limit = pLimit(1);
+      const imageUpload = await limit(async () => {
+        const result = await cloudinary.uploader.upload(req.file.path);
 
-    // Tạo đối tượng Category mới
-    const category = new CategoryModel({
-      name,
-      images: [imageUpload],
-      color,
-      type,
-    });
-    await category.save();
+        // Xóa file tạm sau khi tải lên Cloudinary
+        if (req.file && req.file.path) {
+          fs.unlink(req.file.path, (err) => {
+            if (err) console.error("Error deleting temporary file:", err);
+          });
+        }
 
-    res.status(201).json({
-      success: true,
-      message: "Tạo thành công!",
-      type: "success",
-      category,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(400).json({
-      success: false,
-      error: error, // Trả lỗi về cho frontend
-    });
+        return {
+          public_id: result.public_id,
+          url: result.secure_url,
+        };
+      });
+
+      // Tạo đối tượng Category mới
+      const category = new CategoryModel({
+        name,
+        images: [imageUpload],
+        color,
+        type,
+      });
+      await category.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Tạo thành công!",
+        type: "success",
+        category,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(400).json({
+        success: false,
+        error: error, // Trả lỗi về cho frontend
+      });
+    }
   }
-});
+);
 
 // Chỉnh sửa category theo ID
 router.put(

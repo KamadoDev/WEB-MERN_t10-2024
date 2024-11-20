@@ -1,8 +1,13 @@
 import axios from "axios";
 
 export const getData = async (url, id) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   try {
     const response = await axios.get(`/api${url}`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Thêm token vào header
+      },
       params: { id },
     });
     return response.data;
@@ -17,8 +22,15 @@ export const getData = async (url, id) => {
 };
 
 export const postData = async (url, formData, hasFile = false) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   try {
-    const headers = hasFile ? {} : { "Content-Type": "application/json" };
+    const headers = hasFile
+      ? { Authorization: `Bearer ${token}` }
+      : {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
     const response = await axios.post(`/api${url}`, formData, { headers });
     return response.data;
   } catch (error) {
@@ -32,10 +44,13 @@ export const postData = async (url, formData, hasFile = false) => {
 };
 
 export const putData = async (url, formData) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   try {
     const response = await axios.put(`/api${url}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`, // Thêm token vào header
       },
     });
     return response.data;
@@ -50,8 +65,14 @@ export const putData = async (url, formData) => {
 };
 
 export const deleteData = async (url, id) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   try {
-    const response = await axios.delete(`/api${url}/${id}`);
+    const response = await axios.delete(`/api${url}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Thêm token vào header
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error deleting data:", error.message);
@@ -64,8 +85,18 @@ export const deleteData = async (url, id) => {
 };
 
 export const deleteImage = async (url, publicId) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   try {
-    const response = await axios.post(`/api${url}`, { publicId });
+    const response = await axios.post(
+      `/api${url}`,
+      { publicId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thêm token vào header
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error deleting data:", error.message);

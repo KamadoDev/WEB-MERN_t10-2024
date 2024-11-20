@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { MdOutlineCompareArrows } from "react-icons/md";
 import Tooltip from "@mui/material/Tooltip";
+import CircularProgress from "@mui/material/CircularProgress";
 import ProductItemSlide from "../../Components/ProductItemSlide";
 import RelatedProducts from "../../Components/RelatedProducts";
 import { getData } from "../../utils/api";
@@ -21,7 +22,7 @@ const ProductDetails = () => {
   const [activeTabs, setActiveTabs] = useState(0);
   const [valueRating, setValueRating] = useState(5);
   const [product, setProduct] = useState([]);
-  const [relatedProduct, setRelatedProduct] = useState([]);
+  const [relatedProducts, setRelatedProduct] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const isActive = (type, index, value) => {
@@ -58,12 +59,11 @@ const ProductDetails = () => {
           const filteredData = data?.products?.filter((item) => item.id !== id);
           console.log("Sản phẩm liên quan", filteredData);
           setRelatedProduct(filteredData);
+          setLoading(false);
         });
       });
     } catch (error) {
       console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
     }
   }, [id, selectedTag]);
 
@@ -78,7 +78,9 @@ const ProductDetails = () => {
     <>
       <section className="productDetails section">
         {loading ? (
-          <p>Không tìm thấy sản phẩm này!</p>
+          <div className="text-center w-100">
+            <CircularProgress className="" />
+          </div>
         ) : (
           <div className="container">
             <div className="row">
@@ -152,7 +154,8 @@ const ProductDetails = () => {
                 )}
 
                 <p className="mt-2 mb-0">
-                  Mô tả ngắn: {product?.product?.description.substr(0, 50) + "..."}
+                  Mô tả ngắn:{" "}
+                  {product?.product?.description.substr(0, 50) + "..."}
                 </p>
 
                 <div className="d-flex align-items-center productSize">
@@ -414,7 +417,16 @@ const ProductDetails = () => {
                 ))}
               </ul>
             </div>
-            <RelatedProducts title="Sản phẩm liên quan" />
+
+            {relatedProducts?.length !== 0 ? (
+              <RelatedProducts
+                title="Sản phẩm liên quan"
+                data={relatedProducts}
+              /> ):
+              (
+                <p>Không có sản phẩm liên quan</p>
+              )
+            }
 
             {/* <RelatedProducts title="RECENTLY VIEW PRODUCTS" /> */}
           </div>

@@ -1,14 +1,21 @@
-const UserImage = () => {
+import PropTypes from "prop-types";
+
+const UserImage = (props) => {
   return (
     <>
-      <span className="userImage flex w-[40px] h-[40px] overflow-hidden cursor-pointer">
+      <span className="userImage flex w-[55px] h-[55px] mr-1 overflow-hidden cursor-pointer">
         <img
-          src="https://mironcoder-hotash.netlify.app/images/avatar/01.webp"
+          src={props.avatar}
           alt="myacc"
         />
       </span>
     </>
   );
+};
+
+// Khai báo kiểu dữ liệu cho các props
+UserImage.propTypes = {
+  avatar: PropTypes.string.isRequired,
 };
 
 export default UserImage;

@@ -7,6 +7,7 @@ const {
   checkPassword,
   verifyToken,
   checkAdminOrOwner,
+  isValidPhone,
 } = require("../helper/authHelpers");
 const { UserModel } = require("../models/UserModel");
 const express = require("express");
@@ -16,7 +17,7 @@ const upload = require("../middlewares/multer");
 const fs = require("fs");
 require("dotenv").config();
 
-router.get("/users", verifyToken, checkAdminOrOwner, async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
     // Lấy tất cả người dùng
     const users = await UserModel.find().select("-password"); // Lấy tất cả trường trừ trường password
@@ -43,7 +44,7 @@ router.get("/users", verifyToken, checkAdminOrOwner, async (req, res) => {
 });
 
 // Lấy thông tin user theo ID
-router.get("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -56,7 +57,7 @@ router.get("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
     }
 
     // Tìm người dùng theo ID
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findById(id).select("-password");
 
     // Kiểm tra nếu không tìm thấy user
     if (!user) {
@@ -70,24 +71,14 @@ router.get("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Lấy thông tin người dùng thành công.",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        avatar: user.avatar,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
+      user: user,
     });
   } catch (error) {
     handleError(res, error);
   }
 });
 
-router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -124,7 +115,7 @@ router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
 
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password, fullName } = req.body;
+    const { username, phone, password, fullName } = req.body;
 
     // Kiểm tra các trường bắt buộc
     const checkRequiredFields = (fields) => {
@@ -137,7 +128,7 @@ router.post("/signup", async (req, res) => {
     };
     const missingField = checkRequiredFields({
       username,
-      email,
+      phone,
       password,
       fullName,
     });
@@ -149,9 +140,13 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    // Kiểm tra tính hợp lệ của email và mật khẩu
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ message: "Email không hợp lệ." });
+    // Kiểm tra số điện thoại hợp lệ
+    if (!isValidPhone(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Số điện thoại không hợp lệ.",
+        type: "error",
+      });
     }
 
     // Kiểm tra mật khẩu
@@ -161,13 +156,28 @@ router.post("/signup", async (req, res) => {
         success: false,
         message: "Mật khẩu không hợp lệ.",
         errors: passwordErrors, // Trả về danh sách lỗi
+        type: "error",
       });
     }
 
     // Kiểm tra nếu người dùng đã tồn tại
     const existingUser = await UserModel.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({ message: "Tên người dùng đã tồn tại." });
+      return res.status(400).json({
+        success: false,
+        message: "Tên người dùng đã tồn tại.",
+        type: "error",
+      });
+    }
+
+    // Kiểm tra nếu người dùng đã tồn tại
+    const existingPhone = await UserModel.findOne({ phone });
+    if (existingPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Số điện thoại đã tồn tại.",
+        type: "error",
+      });
     }
 
     // Mã hóa mật khẩu
@@ -176,19 +186,22 @@ router.post("/signup", async (req, res) => {
     // Tạo người dùng mới
     const newUser = new UserModel({
       username,
-      email,
+      phone,
       password: hashedPassword,
       fullName,
     });
 
     await newUser.save();
+    // Xóa trường password trước khi trả về
+    const sanitizedUser = newUser.toObject();
+    delete sanitizedUser.password;
 
     // Tạo token cho người dùng
     const token = generateToken(newUser);
 
     res.status(201).json({
       message: "Đăng ký thành công",
-      user: newUser,
+      user: sanitizedUser,
       token,
     });
   } catch (error) {
@@ -198,13 +211,13 @@ router.post("/signup", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { usernameOrPhone, password } = req.body;
 
     // Kiểm tra thông tin đầu vào
-    if (!username && !email) {
+    if (!usernameOrPhone) {
       return res.status(400).json({
         success: false,
-        message: "Tên đăng nhập hoặc email là bắt buộc.",
+        message: "Tên đăng nhập hoặc số điện thoại là bắt buộc.",
       });
     }
     if (!password) {
@@ -214,24 +227,19 @@ router.post("/signin", async (req, res) => {
       });
     }
 
-    // Nếu email được cung cấp, kiểm tra hợp lệ
-    if (email && !isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Email không hợp lệ.",
-      });
-    }
+    // Kiểm tra nếu `usernameOrPhone` là số điện thoại
+    const isPhone = /^[0-9]{10,15}$/.test(usernameOrPhone);
 
-    // Tìm người dùng qua username hoặc email
-    const user = await UserModel.findOne({
-      $or: [{ username }, { email }],
-    });
+    // Tìm người dùng bằng username hoặc phone
+    const user = await UserModel.findOne(
+      isPhone ? { phone: usernameOrPhone } : { username: usernameOrPhone }
+    );
 
     // Kiểm tra nếu không tìm thấy người dùng
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Tên đăng nhập, email hoặc mật khẩu không đúng.",
+        message: "Tên đăng nhập, số điện thoại hoặc mật khẩu không đúng.",
       });
     }
 
@@ -240,7 +248,7 @@ router.post("/signin", async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Tên đăng nhập, email hoặc mật khẩu không đúng.",
+        message: "Tên đăng nhập, số điện thoại hoặc mật khẩu không đúng.",
       });
     }
 
@@ -252,6 +260,10 @@ router.post("/signin", async (req, res) => {
       });
     }
 
+    // Xóa mật khẩu trước khi trả về
+    const sanitizedUser = user.toObject();
+    delete sanitizedUser.password;
+
     // Tạo token JWT
     const token = generateToken(user);
 
@@ -259,13 +271,89 @@ router.post("/signin", async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Đăng nhập thành công.",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-      },
+      user: sanitizedUser,
+      token,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+router.post("/authencation/signin", async (req, res) => {
+  try {
+    const { usernameOrPhone, password, rememberMe } = req.body;
+
+    // Kiểm tra thông tin đầu vào
+    if (!usernameOrPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Tên đăng nhập hoặc số điện thoại là bắt buộc.",
+      });
+    }
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu là bắt buộc.",
+      });
+    }
+
+    // Kiểm tra nếu `usernameOrPhone` là số điện thoại
+    const isPhone = /^[0-9]{10,15}$/.test(usernameOrPhone);
+
+    // Tìm người dùng bằng username hoặc phone
+    const user = await UserModel.findOne(
+      isPhone ? { phone: usernameOrPhone } : { username: usernameOrPhone }
+    );
+
+    // Kiểm tra nếu không tìm thấy người dùng
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Tên đăng nhập, số điện thoại hoặc mật khẩu không đúng.",
+      });
+    }
+
+    // Kiểm tra mật khẩu
+    const isMatch = await checkPassword(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Tên đăng nhập, số điện thoại hoặc mật khẩu không đúng.",
+      });
+    }
+
+    // Kiểm tra trạng thái tài khoản
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản của bạn đã bị vô hiệu hóa.",
+      });
+    }
+
+    // Kiểm tra vai trò Admin
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền truy cập (admin only).",
+      });
+    }
+
+    // Cập nhật trạng thái "rememberMe" trong cơ sở dữ liệu (nếu cần)
+    user.rememberMe = rememberMe;
+    // Lưu lại user với rememberMe
+    await user.save();
+    // Tạo token JWT
+    const token = generateToken(user);
+
+    // Xóa mật khẩu trước khi trả về
+    const sanitizedUser = user.toObject();
+    delete sanitizedUser.password;
+
+    // Trả về thông tin người dùng và token
+    res.status(200).json({
+      success: true,
+      message: "Đăng nhập thành công.",
+      user: sanitizedUser,
       token,
     });
   } catch (error) {
@@ -274,82 +362,96 @@ router.post("/signin", async (req, res) => {
 });
 
 // API cập nhật thông tin người dùng
-router.put(
-  "/:id",
-  verifyToken,
-  checkAdminOrOwner,
-  upload.single("avatar"),
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { username, email, fullName, role, isActive } = req.body;
+router.put("/:id", upload.single("avatar"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, phone, fullName, role, isActive } = req.body;
 
-      // Kiểm tra ID hợp lệ
-      if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-        return res.status(400).json({
-          success: false,
-          message: "ID không hợp lệ.",
-        });
-      }
+    // Kiểm tra ID hợp lệ
+    const { ObjectId } = require("mongoose").Types;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "ID không hợp lệ.",
+      });
+    }
 
-      // Tìm user
-      const user = await UserModel.findById(id);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Không tìm thấy người dùng.",
-        });
-      }
+    // Tìm user
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy người dùng.",
+      });
+    }
 
-      // Cập nhật avatar nếu có
-      let updatedAvatar = user.avatar;
-      if (req.file) {
-        // Tải ảnh lên Cloudinary
+    // Kiểm tra email
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email không hợp lệ.",
+      });
+    }
+
+    // Kiểm tra số điện thoại
+    if (phone && !isValidPhone(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Số điện thoại không hợp lệ.",
+      });
+    }
+
+    // Xử lý avatar nếu có file upload
+    let updatedAvatar = user.avatar;
+    if (req.file) {
+      try {
         const result = await cloudinary.uploader.upload(req.file.path, {
-          public_id: `user_${id}`, // Đặt tên file dựa theo user ID
-          overwrite: true, // Ghi đè nếu đã tồn tại
+          public_id: `user_${id}`,
+          overwrite: true,
         });
-
-        // Lấy URL ảnh từ Cloudinary
         updatedAvatar = result.secure_url;
 
         // Xóa file tạm
         fs.unlinkSync(req.file.path);
+      } catch (uploadError) {
+        return res.status(500).json({
+          success: false,
+          message: "Không thể tải lên ảnh avatar.",
+          error: uploadError.message,
+        });
       }
-
-      // Cập nhật thông tin
-      const updatedData = {
-        username: username || user.username,
-        email: email || user.email,
-        fullName: fullName || user.fullName,
-        role: role || user.role,
-        isActive: isActive === undefined ? user.isActive : isActive,
-        avatar: updatedAvatar,
-      };
-
-      const updatedUser = await UserModel.findByIdAndUpdate(id, updatedData, {
-        new: true, // Trả về dữ liệu sau khi cập nhật
-        runValidators: true, // Kiểm tra các điều kiện trong schema
-      });
-
-      // Xóa trường password trước khi trả về
-      const sanitizedUser = updatedUser.toObject();
-      delete sanitizedUser.password;
-
-      // Trả về kết quả
-      res.status(200).json({
-        success: true,
-        message: "Cập nhật thông tin người dùng thành công.",
-        user: sanitizedUser,
-      });
-    } catch (error) {
-      // Xóa file tạm nếu có lỗi xảy ra
-      if (req.file && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      handleError(res, error);
     }
+
+    // Cập nhật thông tin
+    const updatedData = {
+      username: username || user.username,
+      email: email || user.email,
+      phone: phone || user.phone,
+      fullName: fullName || user.fullName,
+      role: role || user.role,
+      isActive: isActive === undefined ? user.isActive : isActive,
+      avatar: updatedAvatar,
+    };
+
+    const updatedUser = await UserModel.findByIdAndUpdate(id, updatedData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    // Trả về kết quả
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật thông tin người dùng thành công.",
+      user: updatedUser,
+    });
+  } catch (error) {
+    // Xóa file tạm nếu có lỗi
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error("Error updating user:", error);
+    handleError(res, error);
   }
-);
+});
 
 module.exports = router;
