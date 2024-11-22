@@ -8,10 +8,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
-import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import { useContext, useState } from "react";
-import PersonAdd from "@mui/icons-material/PersonAdd";
 import SearchBox from "../SearchBox";
 import { MyContext } from "../../App";
 import { useNavigate } from "react-router-dom";
@@ -26,13 +24,13 @@ const Header = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   const navigate = useNavigate();
+
   const handleLogout = () => {
     // Xóa token và thông tin người dùng
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
+    localStorage.clear();
+    sessionStorage.clear();
 
     // Cập nhật trạng thái login
     context.setIsLogin(false);

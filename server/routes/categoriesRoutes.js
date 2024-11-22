@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const { SubCategoryModel } = require("../models/SubCategoryModel");
 const { ProductModel } = require("../models/ProductModel");
+const { verifyToken, checkAdminOrOwner } = require("../helper/authHelpers");
 
 // Lấy tất cả Category với phân trang
 router.get("/", async (req, res) => {
@@ -97,7 +98,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Xóa category
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
     const categoryId = req.params.id;
 
@@ -171,6 +172,8 @@ router.delete("/:id", async (req, res) => {
 router.post(
   "/create",
   upload.single("file"),
+  verifyToken,
+  checkAdminOrOwner,
   async (req, res) => {
     try {
       const { name, color, type } = req.body;
@@ -252,6 +255,8 @@ router.post(
 router.put(
   "/:id",
   upload.single("file"), // Đảm bảo rằng tên này khớp với tên trong FormData
+  verifyToken,
+  checkAdminOrOwner,
   async (req, res) => {
     try {
       const { name, color, type } = req.body; // Lấy thông tin từ req.body

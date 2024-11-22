@@ -94,10 +94,22 @@ const AuthSignIn = () => {
           message: response.message,
         });
 
+        const user = {
+          username: response.user?.username,
+          fullName: response.user?.fullName,
+          phone: response.user?.phone,
+          avatar: response.user?.avatar,
+          userId: response.user?._id,
+        };
+
+        sessionStorage.setItem("token", response.token); // Lưu token tạm thời
+        sessionStorage.setItem("user", JSON.stringify(user)); // Lưu user tạm thời
+
         // Chuyển hướng sau khi đăng nhập thành công
         setTimeout(() => {
+          context.setisHeaderFooterShow(true);
           history("/");
-        }, 2000);
+        }, 1000);
       }
     } catch (error) {
       setAlertBox({

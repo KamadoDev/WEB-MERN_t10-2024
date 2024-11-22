@@ -75,7 +75,8 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     return res.status(403).json({
       success: false,
-      message: "Token không được cung cấp",
+      message: "Vui lòng đăng nhập!",
+      type: "error",
     });
   }
 
@@ -88,7 +89,7 @@ const verifyToken = (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Token không hợp lệ",
+      message: "Phiên đăng nhập không hợp lệ!",
     });
   }
 };

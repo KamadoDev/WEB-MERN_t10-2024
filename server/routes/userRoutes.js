@@ -78,7 +78,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, checkAdminOrOwner,  async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -362,7 +362,7 @@ router.post("/authencation/signin", async (req, res) => {
 });
 
 // API cập nhật thông tin người dùng
-router.put("/:id", upload.single("avatar"), async (req, res) => {
+router.put("/:id", upload.single("avatar"), verifyToken, checkAdminOrOwner,  async (req, res) => {
   try {
     const { id } = req.params;
     const { username, email, phone, fullName, role, isActive } = req.body;

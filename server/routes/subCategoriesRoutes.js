@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { SubCategoryModel } = require("../models/SubCategoryModel");
 const { ProductModel } = require("../models/ProductModel");
+const { checkAdminOrOwner, verifyToken } = require("../helper/authHelpers");
 
 // Lấy tất cả SubCategory với phân trang
 router.get("/", async (req, res) => {
@@ -99,7 +100,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Xóa subcategory
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
     const subCategoryId = req.params.id;
 
@@ -114,7 +115,9 @@ router.delete("/:id", async (req, res) => {
     }
 
     // Kiểm tra số lượng sản phẩm đang sử dụng subcategory này
-    const productCount = await ProductModel.countDocuments({ sub_category: subCategoryId });
+    const productCount = await ProductModel.countDocuments({
+      sub_category: subCategoryId,
+    });
     if (productCount > 0) {
       return res.status(400).json({
         success: false,
@@ -142,7 +145,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Tạo subcategory
-router.post("/create", async (req, res) => {
+router.post("/create", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
     const { name, parentCategory } = req.body;
 

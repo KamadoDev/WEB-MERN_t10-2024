@@ -12,7 +12,7 @@ const fs = require("fs");
 const { verifyToken, checkAdminOrOwner } = require("../helper/authHelpers");
 
 // Lấy tất cả sản phẩm
-router.get("/", verifyToken, checkAdminOrOwner, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const perPage = 12;
@@ -350,7 +350,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Xóa sản phẩm
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, checkAdminOrOwner,  async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await ProductModel.findById(productId);
@@ -494,7 +494,7 @@ router.post("/upload", upload.array("images"), async (req, res) => {
 });
 
 // Tạo sản phẩm mới
-router.post("/create", upload.array("images", 5), async (req, res) => {
+router.post("/create", upload.array("images", 5), verifyToken, checkAdminOrOwner,  async (req, res) => {
   try {
     // Kiểm tra các tệp đã được tải lên
     if (!req.files || req.files.length === 0) {
@@ -697,7 +697,7 @@ router.post("/create", upload.array("images", 5), async (req, res) => {
 });
 
 // Cập nhật sản phẩm
-router.put("/:id", upload.array("files", 5), async (req, res) => {
+router.put("/:id", upload.array("files", 5), verifyToken, checkAdminOrOwner,  async (req, res) => {
   try {
     const { id } = req.params;
     const {

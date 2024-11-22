@@ -3,35 +3,48 @@ import Rating from "@mui/material/Rating";
 import QuantityBox from "../../Components/QuantityBox";
 import { Button } from "@mui/material";
 import { BsCartPlusFill } from "react-icons/bs";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { MdOutlineCompareArrows } from "react-icons/md";
 import Tooltip from "@mui/material/Tooltip";
-import CircularProgress from "@mui/material/CircularProgress";
 import ProductItemSlide from "../../Components/ProductItemSlide";
 import RelatedProducts from "../../Components/RelatedProducts";
-import { getData } from "../../utils/api";
+import { getData, postData } from "../../utils/api";
+import { MyContext } from "../../App";
+import { useContext } from "react";
+import Alert from "@mui/material/Alert";
+import IconButton from "@mui/material/IconButton";
+import Collapse from "@mui/material/Collapse";
+import CloseIcon from "@mui/icons-material/Close";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const history = useNavigate();
   const [activeSize, setActiveSize] = useState(null);
   const [activeColor, setActiveColor] = useState(null);
   const [activeTag, setActiveTag] = useState(null);
   const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [activeTabs, setActiveTabs] = useState(0);
   const [valueRating, setValueRating] = useState(5);
   const [product, setProduct] = useState([]);
   const [relatedProducts, setRelatedProduct] = useState([]);
   const [loading, setLoading] = useState(false);
+  const context = useContext(MyContext);
+  const [quantityVal, setQuantityVal] = useState();
 
   const isActive = (type, index, value) => {
     switch (type) {
       case "size":
         setActiveSize(index);
+        setSelectedSize(value);
         break;
       case "color":
         setActiveColor(index);
+        setSelectedColor(value);
         break;
       case "tab":
         setActiveTabs(index);
@@ -42,6 +55,67 @@ const ProductDetails = () => {
         break;
       default:
         break;
+    }
+  };
+
+  const onQuantityChange = (value) => {
+    console.log("quantity productDetail", value);
+    setQuantityVal(value);
+  };
+
+  const [loadingCart, setLoadingCart] = useState(false);
+
+  const addCart = async (id) => {
+    setLoadingCart(true);
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    const newCartFields = {
+      userId: context.userData.userId,
+      productId: id,
+      quantity: quantityVal,
+      size: selectedSize,
+      color: selectedColor,
+    };
+
+    try {
+      // Gửi dữ liệu lên server
+      const response = await postData(`/api/cart/addCart`, newCartFields, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thay bằng token thật
+        },
+      });
+      console.log("Response from server:", response);
+      if (response.status === true) {
+        context.setAlertBox({
+          open: true,
+          message: response.message,
+          type: response.type || "success",
+        });
+        setTimeout(() => {
+          history("/cart");
+        }, 1000);
+        setLoadingCart(false);
+      } else {
+        console.log(response.message);
+        context.setAlertBox({
+          open: true,
+          message: response.message,
+          type: response.type || "error",
+        });
+        setLoadingCart(false);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error.message);
+      setLoadingCart(false);
+    } finally {
+      setTimeout(() => {
+        context.setAlertBox({
+          open: false,
+          message: "",
+          type: "",
+        });
+        setLoadingCart(false);
+      }, 5000);
     }
   };
 
@@ -76,6 +150,32 @@ const ProductDetails = () => {
 
   return (
     <>
+      <div className="position-fixed" style={{ right: "20px", zIndex: "100" }}>
+        {context.alertBox.open === true && (
+          <Collapse in={context.alertBox.open}>
+            <Alert
+              severity={context.alertBox.type}
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    context.setAlertBox({
+                      open: false,
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ mb: 2 }}
+            >
+              {context.alertBox.message}
+            </Alert>
+          </Collapse>
+        )}
+      </div>
       <section className="productDetails section">
         {loading ? (
           <div className="text-center w-100">
@@ -164,7 +264,7 @@ const ProductDetails = () => {
                     {product?.product?.size?.map((item, index) => (
                       <li className="list-inline-item" key={index}>
                         <Link
-                          onClick={() => isActive("size", index)}
+                          onClick={() => isActive("size", index, item)}
                           className={`tag ${
                             activeSize === index ? "active" : ""
                           }`}
@@ -181,7 +281,7 @@ const ProductDetails = () => {
                     {product?.product?.colors?.map((item, index) => (
                       <li className="list-inline-item" key={index}>
                         <Link
-                          onClick={() => isActive("color", index)}
+                          onClick={() => isActive("color", index, item)}
                           className={`tag ${
                             activeColor === index ? "active" : ""
                           }`}
@@ -194,10 +294,19 @@ const ProductDetails = () => {
                 </div>
 
                 <div className="d-flex align-items-center mt-3">
-                  <QuantityBox />
-                  <Button className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round">
-                    <BsCartPlusFill />
-                    &nbsp; Add to cart
+                  <QuantityBox onQuantityChange={onQuantityChange} />
+                  <Button
+                    onClick={() => addCart(id)}
+                    className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round"
+                  >
+                    {loadingCart === true ? (
+                      <CircularProgress className="" />
+                    ) : (
+                      <>
+                        <BsCartPlusFill />
+                        &nbsp; Add to cart
+                      </>
+                    )}
                   </Button>
                   <Tooltip title="Add to Wishlist" placement="top">
                     <Button className="btn-blue btn-lg btn-circle ml-3">
@@ -422,11 +531,10 @@ const ProductDetails = () => {
               <RelatedProducts
                 title="Sản phẩm liên quan"
                 data={relatedProducts}
-              /> ):
-              (
-                <p>Không có sản phẩm liên quan</p>
-              )
-            }
+              />
+            ) : (
+              <p>Không có sản phẩm liên quan</p>
+            )}
 
             {/* <RelatedProducts title="RECENTLY VIEW PRODUCTS" /> */}
           </div>

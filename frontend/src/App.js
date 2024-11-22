@@ -1,6 +1,6 @@
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Home from "./Pages/Home";
 import Header from "./Components/Header";
 import { createContext, useEffect, useState } from "react";
@@ -28,6 +28,40 @@ function App() {
   const [categoryData, setCategoryData] = useState([]);
   const [subCategoryData, setSubCategoryData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [cartData, setCartData] = useState([]);
+  const [alertBox, setAlertBox] = useState({
+    open: false,
+    message: "",
+    type: "",
+  });
+
+  const [userData, setUserData] = useState({
+    username: "",
+    fullName: "",
+    userId: "",
+    avatar: "",
+  });
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (token) {
+      setIsLogin(true);
+      const userFromLocalStorage = localStorage.getItem("user");
+      const userFromSessionStorage = sessionStorage.getItem("user");
+
+      const user = userFromLocalStorage
+        ? JSON.parse(userFromLocalStorage)
+        : userFromSessionStorage
+        ? JSON.parse(userFromSessionStorage)
+        : null;
+      setUserData(user);
+    } else {
+      setIsLogin(false);
+    }
+  }, [navigate]);
 
   useEffect(() => {
     setLoading(true);
@@ -63,6 +97,29 @@ function App() {
     });
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token =
+          localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) {
+          console.error("Token không tồn tại.");
+          return;
+        }
+        const response = await getData(`/api/cart/getCart/${userData.userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Dữ liệu giỏ hàng:", response);
+        setCartData(response); // Cập nhật dữ liệu giỏ hàng
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+      }
+    };
+    fetchData();
+  }, [userData.userId]);
+
   const values = {
     countryList,
     setSelectedCountry,
@@ -79,29 +136,27 @@ function App() {
     setSubCategoryData,
     loading,
     setLoading,
+    userData,
+    setUserData,
+    cartData,
+    setCartData,
+    alertBox,
+    setAlertBox,
   };
   return (
-    <BrowserRouter>
-      <MyContext.Provider value={values}>
-        {isHeaderFooterShow === true && <Header />}
-        <Routes>
-          <Route path="/" exact={true} element={<Home />} />
-          <Route path="/cat/:id" exact={true} element={<Listing />} />
-          <Route
-            path="/product/:id"
-            exact={true}
-            element={<ProductDetails />}
-          />
-          <Route path="/cart" exact={true} element={<Cart />} />
-          <Route path="/signIn" exact={true} element={<AuthSignIn />} />
-          <Route path="/signUp" exact={true} element={<AuthSignUp />} />
-        </Routes>
-        {isHeaderFooterShow === true && <Footer />}
-        {isOpenProductModal.open === true && (
-          <ProductModal data={productData} />
-        )}
-      </MyContext.Provider>
-    </BrowserRouter>
+    <MyContext.Provider value={values}>
+      {isHeaderFooterShow === true && <Header />}
+      <Routes>
+        <Route path="/" exact={true} element={<Home />} />
+        <Route path="/cat/:id" exact={true} element={<Listing />} />
+        <Route path="/product/:id" exact={true} element={<ProductDetails />} />
+        <Route path="/cart" exact={true} element={<Cart />} />
+        <Route path="/signIn" exact={true} element={<AuthSignIn />} />
+        <Route path="/signUp" exact={true} element={<AuthSignUp />} />
+      </Routes>
+      {isHeaderFooterShow === true && <Footer />}
+      {isOpenProductModal.open === true && <ProductModal data={productData} />}
+    </MyContext.Provider>
   );
 }
 

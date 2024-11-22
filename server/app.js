@@ -14,11 +14,17 @@ app.options("*", cors);
 // middleware
 app.use(bodyParser.json());
 // xác thực JWT
-app.use(authJwt());
+// app.use(authJwt());
 // app.use(isAdmin());
+
+
 // Routes user
 const userRoutes = require("./routes/userRoutes");
 app.use(`/api/user`, userRoutes); // Routes User
+
+// cart 
+const cartRoutes = require("./routes/cartRoutes");
+app.use(`/api/cart`, cartRoutes); // Routes Cart
 
 // Routes Categories
 const categoryRoutes = require("./routes/categoriesRoutes");

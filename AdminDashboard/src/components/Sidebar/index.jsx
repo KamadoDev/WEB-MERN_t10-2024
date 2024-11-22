@@ -178,18 +178,21 @@ const Sidebar = () => {
                 authentication
               </h6>
             </li> */}
-            <li>
-              <Link to="/authen/login">
-                <Button
-                  className={`w-100 py-2 ${activeTab === 6 ? "active" : ""}`}
-                  onClick={() => setActiveTab(6)}
-                >
-                  <FiUser className="mr-1" />
-                  <span className="">Đăng nhập</span>
-                  {/* <FaAngleRight className="mr-1 ml-auto size-3" /> */}
-                </Button>
-              </Link>
-            </li>
+            {context.isLogin === false && (
+              <li>
+                <Link to="/authen/login">
+                  <Button
+                    className={`w-100 py-2 ${activeTab === 6 ? "active" : ""}`}
+                    onClick={() => setActiveTab(6)}
+                  >
+                    <FiUser className="mr-1" />
+                    <span className="">Đăng nhập</span>
+                    {/* <FaAngleRight className="mr-1 ml-auto size-3" /> */}
+                  </Button>
+                </Link>
+              </li>
+            )}
+
             {/* <li>
               <Button
                 className={`w-100 py-2 ${activeTab === 5 ? "active" : ""}`}

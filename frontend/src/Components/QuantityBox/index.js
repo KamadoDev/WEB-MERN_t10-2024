@@ -1,10 +1,10 @@
 import { FaMinus } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa";
 import { Button } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const QuantityBox = () => {
-  const [inputVal, setInputval] = useState(1);
+const QuantityBox = (props) => {
+  const [inputVal, setInputval] = useState(props.quantity || 1);
 
   const MinVal = () => {
     if (inputVal > 1) {
@@ -14,6 +14,11 @@ const QuantityBox = () => {
   const PlusVal = () => {
     setInputval(inputVal + 1);
   };
+
+  useEffect(() => {
+    props.onQuantityChange(inputVal); // Gửi giá trị số lượng mới về component cha
+  }, [inputVal]);
+
   return (
     <>
       <div className="quantityDrop d-flex align-items-center">
