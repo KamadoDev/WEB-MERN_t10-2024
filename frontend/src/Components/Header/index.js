@@ -53,9 +53,26 @@ const Header = () => {
     }).format(value);
   };
 
+  const [isSticky, setIsSticky] = React.useState(false);
+
+  const handleScroll = () => {
+    if (window.scrollY > 200) {
+      // Kiểm tra vị trí cuộn khi cuộn qua 200px
+      setIsSticky(true);
+    } else {
+      setIsSticky(false);
+    }
+  };
+
+  React.useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-      <div className="headerWrapper">
+      <div className={`headerWrapper ${isSticky ? "sticky" : ""}`}>
         <div className="top-strip bg-blue">
           <div className="container">
             <p className="mb-0 mt-0 text-center">

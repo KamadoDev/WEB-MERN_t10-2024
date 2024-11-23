@@ -304,7 +304,7 @@ const ProductDetails = () => {
                     ) : (
                       <>
                         <BsCartPlusFill />
-                        &nbsp; Add to cart
+                        &nbsp; Thêm vào giỏ hàng
                       </>
                     )}
                   </Button>

@@ -11,15 +11,21 @@ import Alert from "@mui/material/Alert";
 import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
+import Voucher from "../../Components/Voucher";
 
 const Cart = () => {
   const context = useContext(MyContext);
   const [totalPrice, setTotalPrice] = useState(0);
-
+  const [finalPrice, setFinalPrice] = useState(0);
   const calculator = (price, discount) => {
     const discountPrice = price * (discount / 100);
     const discountedPrice = price - discountPrice;
     return parseFloat(discountedPrice);
+  };
+
+  const applyDiscount = (discount, updatedPrice) => {
+    // Cập nhật giá trị khi áp dụng mã giảm giá
+    setFinalPrice(updatedPrice);
   };
 
   const handleQuantityChange = (newQuantity, productId, size, color) => {
@@ -370,27 +376,19 @@ const Cart = () => {
                     <b>United Kingdom</b>
                   </span>
                 </div> */}
-                <div className="d-flex align-items-center flex-column mb-5">
-                  <p className="mb-2">Mã giảm giá</p>
-                  <div className="discountCode ">
-                    <div className="iconDiscount">
-                      <BiSolidDiscount />
-                    </div>
-                    <input
-                      type="text"
-                      id="discount-code"
-                      className="input-discount form-control mr-2"
-                      placeholder="Enter your code"
-                    />
-                    <p className="checkCode success">Mã hợp lệ</p>
-                  </div>
-                </div>
+                <Voucher
+                  totalPrice={totalPrice}
+                  applyDiscount={applyDiscount}
+                />
                 <div className="d-flex align-items-center mb-3">
                   <span>Tổng phải trả</span>
                   <span className="priceCart ml-auto font-weight-bold">
-                    {formatCurrency(parseFloat(totalPrice))}
+                    {formatCurrency(
+                      parseFloat(finalPrice > 0 ? finalPrice : totalPrice)
+                    )}
                   </span>
                 </div>
+
                 <Link to="">
                   <Button className="w-100 btn-blue text-capitalize bg-red btn-lg btn-big btnCheckout">
                     <MdOutlineShoppingCartCheckout />

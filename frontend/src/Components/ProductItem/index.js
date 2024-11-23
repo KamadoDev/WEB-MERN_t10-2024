@@ -47,9 +47,9 @@ const ProductItem = (props) => {
               </span>
             )}
             <div className="actions">
-              <Button onClick={() => viewProductDetails(props.item?.id)}>
+              {/* <Button onClick={() => viewProductDetails(props.item?.id)}>
                 <TfiFullscreen />
-              </Button>
+              </Button> */}
               <Button>
                 <IoMdHeartEmpty style={{ fontSize: "20px" }} />
               </Button>

@@ -59,7 +59,6 @@ body {
   background-color: #0056b3;
 }
 
-
 a {
   text-decoration: none !important;
 }
@@ -114,6 +113,15 @@ a {
   overflow: hidden; /* Ẩn phần văn bản bị tràn */
   text-overflow: ellipsis; /* Thêm dấu "..." khi văn bản bị cắt */
   width: 200px; /* Đặt chiều rộng cụ thể */ /* Thêm dấu "..." */
+}
+
+.headerWrapper.sticky {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Thêm bóng mờ khi cuộn qua 200px */
+  position: sticky; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 @media (min-width: 1300px) {
@@ -517,7 +525,7 @@ nav .navPart2 ul li .submenu a button {
 }
 nav .navPart2 ul li .submenu a button:hover {
   background-color: #0056b3;
-  color: #FFF !important;
+  color: #fff !important;
   border-bottom: 1px solid transparent;
 }
 
@@ -985,14 +993,7 @@ nav .navPart2 ul li .submenu a button {
 .bannerSec .bannerBot img {
   cursor: pointer;
 }
-
 /* bannerSec end */
-
-.sticky {
-  position: sticky;
-  top: 10px;
-  z-index: 1000;
-}
 
 /* newLetterSection */
 

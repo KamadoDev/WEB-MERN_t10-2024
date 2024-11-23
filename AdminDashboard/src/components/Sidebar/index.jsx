@@ -17,7 +17,7 @@ import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 import { MyContext } from "../../App";
-
+import { BiSolidDiscount } from "react-icons/bi";
 const Sidebar = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [isToggleSubmenu, setToggleSubmenu] = useState(false);
@@ -41,6 +41,11 @@ const Sidebar = () => {
     { label: "Thêm danh mục", link: "/category/create" },
     { label: "Danh mục phụ", link: "/subcategory/list" },
     { label: "Thêm danh mục phụ", link: "/subcategory/create" },
+  ];
+
+  const Voucher = [
+    { label: "Danh sách voucher", link: "/voucher/list" },
+    { label: "Thêm voucher", link: "/voucher/create" },
   ];
 
   return (
@@ -105,6 +110,16 @@ const Sidebar = () => {
               submenus={categoriesSubmenu}
               title="Danh mục"
               iconNav={<MdOutlineCategory className="mr-1" />}
+            />
+
+            <NavTab
+              index={3}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={Voucher}
+              title="Voucher"
+              iconNav={<BiSolidDiscount className="mr-1" />}
             />
 
             {/* <li>

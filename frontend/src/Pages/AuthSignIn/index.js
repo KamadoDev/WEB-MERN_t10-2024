@@ -87,6 +87,8 @@ const AuthSignIn = () => {
           message: response.message,
         });
       } else {
+        console.log("SignIn data", response.iat);
+
         setAlertBox({
           open: true,
           closing: false,

@@ -8,13 +8,13 @@ import ProductCreate from "./components/Products/ProductCreate";
 import SignIn from "./components/SignIn";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import OPTpage from "./pages/OTP/OTPpage";
-import ProductsLayout from "./Layouts/Products/ProductsLayout";
-import AuthLayout from "./Layouts/Auth/AuthLayout";
-import CategoriesLayout from "./Layouts/Categories/CategoriesLayout";
 import CategoryList from "./components/Category/CategoryList";
 import CategoryCreate from "./components/Category/CategoryCreate";
 import SubCategoryCreate from "./components/SubCategory/SubCategoryCreate";
 import SubCategoryList from "./components/SubCategory/SubCategoryList";
+import Layout from "./Layouts/Layout";
+import VoucherCreate from "./components/Voucher/VoucherCreate";
+import VoucherList from "./components/Voucher/VoucherList";
 const MyContext = createContext();
 
 const App = () => {
@@ -106,25 +106,30 @@ const App = () => {
           <Routes>
             <Route path="/" exact={true} element={<Dashboard />} />
             {/* Product */}
-            <Route path="/products" element={<ProductsLayout />}>
+            <Route path="/products" element={<Layout />}>
               <Route path="list" element={<ProductsList title="Danh sách" />} />
               <Route path="create" element={<ProductCreate />} />
             </Route>
-            <Route path="/category" element={<CategoriesLayout />}>
+            <Route path="/category" element={<Layout />}>
               <Route path="list" element={<CategoryList title="Danh sách" />} />
               <Route path="create" element={<CategoryCreate />} />
             </Route>
-            <Route path="/subcategory" element={<CategoriesLayout />}>
+            <Route path="/subcategory" element={<Layout />}>
               <Route
                 path="list"
                 element={<SubCategoryList title="Danh sách" />}
               />
               <Route path="create" element={<SubCategoryCreate />} />
             </Route>
-            <Route path="/authen" element={<AuthLayout />}>
+            <Route path="/authen" element={<Layout />}>
               <Route path="login" element={<SignIn />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
               <Route path="otp" element={<OPTpage />} />
+            </Route>
+
+            <Route path="/voucher" element={<Layout />}>
+              <Route path="list" element={<VoucherList title="Danh sách" />} />
+              <Route path="create" element={<VoucherCreate />} />
             </Route>
           </Routes>
         </div>
