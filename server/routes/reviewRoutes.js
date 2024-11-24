@@ -1,79 +1,89 @@
 const express = require("express");
 const { verifyToken, checkAdminOrOwner } = require("../helper/authHelpers");
 const { ReviewModel } = require("../models/ReviewModel");
+const { UserModel } = require("../models/UserModel");
 const router = express.Router();
 
 router.get("/:productId", async (req, res) => {
   const { productId } = req.params;
 
   try {
-    const reviews = await ReviewModel.find({ productId }).populate(
-      "userId",
-      "name"
-    );
+    const reviews = await ReviewModel.find({ productId })
+      .populate("userId", "fullName") // Lấy trường "name" từ User
+      .sort({ createdAt: -1 }); // Sắp xếp đánh giá theo thời gian (mới nhất trước)
 
     if (!reviews.length) {
       return res.status(404).json({
-        success: false,
+        status: false,
         message: "Không tìm thấy đánh giá nào cho sản phẩm này",
       });
     }
 
     res.status(200).json({
-      success: true,
+      status: true,
       message: "Lấy danh sách đánh giá thành công",
       reviews,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      success: false,
+      status: false,
       message: "Có lỗi xảy ra khi lấy danh sách đánh giá",
       error: error.message,
     });
   }
 });
 
-router.get(
-  ":productId/review/:userId",
-  verifyToken,
-  async (req, res) => {
-    const { productId, userId } = req.params;
+router.get(":productId/review/:userId", verifyToken, async (req, res) => {
+  const { productId, userId } = req.params;
 
-    try {
-      const review = await ReviewModel.findOne({ productId, userId });
+  try {
+    const review = await ReviewModel.findOne({ productId, userId });
 
-      if (!review) {
-        return res.status(404).json({
-          success: false,
-          message: "Người dùng chưa đánh giá sản phẩm này",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Lấy đánh giá thành công",
-        review,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
+    if (!review) {
+      return res.status(404).json({
         success: false,
-        message: "Có lỗi xảy ra khi lấy đánh giá",
-        error: error.message,
+        message: "Người dùng chưa đánh giá sản phẩm này",
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Lấy đánh giá thành công",
+      review,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Có lỗi xảy ra khi lấy đánh giá",
+      error: error.message,
+    });
   }
-);
+});
 
 router.post("/newReview/:userId", verifyToken, async (req, res) => {
   const { userId } = req.params;
   const { productId, rating, reviewText } = req.body;
 
-  if (!userId || !productId || !rating) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Thiếu dữ liệu bắt buộc" });
+  // Tìm người dùng theo ID
+  const user = await UserModel.findById(userId).select("-password");
+
+  // Kiểm tra nếu không tìm thấy user
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "Vui lòng đăng nhập.",
+      type: "error",
+    });
+  }
+
+  if (!productId || !rating) {
+    return res.status(400).json({
+      success: false,
+      message: "Thiếu dữ liệu bắt buộc",
+      type: "error",
+    });
   }
 
   try {
@@ -88,8 +98,9 @@ router.post("/newReview/:userId", verifyToken, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Đánh giá đã được tạo thành công",
+      message: "Đã ghi nhận đánh giá của bạn!",
       review: newReview,
+      type: "success",
     });
   } catch (error) {
     console.error(error);
@@ -97,6 +108,7 @@ router.post("/newReview/:userId", verifyToken, async (req, res) => {
       success: false,
       message: "Có lỗi xảy ra khi tạo đánh giá",
       error: error.message,
+      type: "error",
     });
   }
 });
@@ -134,22 +146,37 @@ router.put("/updateReview/:id", verifyToken, async (req, res) => {
   }
 });
 
-router.delete("/deleteReview/:id", verifyToken, async (req, res) => {
-  const { id } = req.params;
+router.delete("/deleteReview/:userId/:id", verifyToken, async (req, res) => {
+  const { userId, id } = req.params;
 
   try {
-    const deletedReview = await ReviewModel.findByIdAndDelete(id);
+    // Tìm review với id
+    const reviewToDelete = await ReviewModel.findById(id);
 
-    if (!deletedReview) {
+    if (!reviewToDelete) {
       return res.status(404).json({
         success: false,
-        message: "Không tìm thấy đánh giá để xóa",
+        message: "Không tìm thấy đánh giá",
+        type: "error",
       });
     }
+
+    // Kiểm tra userId có khớp không
+    if (reviewToDelete.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền xóa đánh giá này",
+        type: "error",
+      });
+    }
+
+    // Xóa review nếu userId khớp
+    await ReviewModel.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,
       message: "Đánh giá đã được xóa thành công",
+      type: "success",
     });
   } catch (error) {
     console.error(error);
@@ -157,6 +184,7 @@ router.delete("/deleteReview/:id", verifyToken, async (req, res) => {
       success: false,
       message: "Có lỗi xảy ra khi xóa đánh giá",
       error: error.message,
+      type: "error",
     });
   }
 });

@@ -13,6 +13,10 @@ import Cart from "./Pages/Cart";
 import AuthSignIn from "./Pages/AuthSignIn";
 import AuthSignUp from "./Pages/AuthSignUp";
 import { getData } from "./utils/api";
+import ListHeart from "./Pages/ListHeart";
+import CloseIcon from "@mui/icons-material/Close";
+import { Alert, Collapse, IconButton } from "@mui/material";
+import Checkout from "./Pages/Checkout";
 
 const MyContext = createContext();
 function App() {
@@ -146,13 +150,41 @@ function App() {
   return (
     <MyContext.Provider value={values}>
       {isHeaderFooterShow === true && <Header />}
+      <div className="position-fixed" style={{ right: "20px", top: "230px", zIndex: "100" }}>
+        {alertBox.open === true && (
+          <Collapse in={alertBox.open}>
+            <Alert
+              severity={alertBox.type}
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    setAlertBox({
+                      open: false,
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ mb: 2 }}
+            >
+              {alertBox.message}
+            </Alert>
+          </Collapse>
+        )}
+      </div>
       <Routes>
         <Route path="/" exact={true} element={<Home />} />
         <Route path="/cat/:id" exact={true} element={<Listing />} />
+        <Route path="/list-heart" exact={true} element={<ListHeart />} />
         <Route path="/product/:id" exact={true} element={<ProductDetails />} />
         <Route path="/cart" exact={true} element={<Cart />} />
         <Route path="/signIn" exact={true} element={<AuthSignIn />} />
         <Route path="/signUp" exact={true} element={<AuthSignUp />} />
+        <Route path="/checkout" exact={true} element={<Checkout />} />
       </Routes>
       {isHeaderFooterShow === true && <Footer />}
       {isOpenProductModal.open === true && <ProductModal data={productData} />}

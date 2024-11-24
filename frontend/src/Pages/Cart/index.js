@@ -3,14 +3,9 @@ import { Link } from "react-router-dom";
 import QuantityBox from "../../Components/QuantityBox";
 import { GoTrash } from "react-icons/go";
 import { MdOutlineShoppingCartCheckout } from "react-icons/md";
-import { BiSolidDiscount } from "react-icons/bi";
 import { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../App";
 import { deleteData, getData, putData } from "../../utils/api";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import Collapse from "@mui/material/Collapse";
-import CloseIcon from "@mui/icons-material/Close";
 import Voucher from "../../Components/Voucher";
 
 const Cart = () => {
@@ -113,20 +108,17 @@ const Cart = () => {
         localStorage.getItem("token") || sessionStorage.getItem("token");
       const userId = context.userData.userId;
 
-      // Xử lý yêu cầu xóa sản phẩm
       const response = await deleteData(
         `/api/cart/removeCart/${userId}`,
-        { productId }, // Truyền productId trong body yêu cầu
+        { productId }, // Truyền body
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Thêm Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      // Kiểm tra phản hồi và thực hiện các bước sau khi xóa thành công
       if (response.status) {
-        // Cập nhật giỏ hàng trong UI nếu cần
         console.log("Sản phẩm đã được xóa khỏi giỏ hàng");
         context.setAlertBox({
           open: true,
@@ -134,7 +126,6 @@ const Cart = () => {
           type: response.type || "success",
         });
         fetchData();
-        setLoadingCart(false);
       } else {
         console.error("Lỗi xóa sản phẩm", response.message);
         context.setAlertBox({
@@ -142,19 +133,17 @@ const Cart = () => {
           message: response.message,
           type: response.type || "error",
         });
-        setLoadingCart(false);
       }
     } catch (error) {
       console.error("Error removing product from cart:", error.message);
-      setLoadingCart(false);
     } finally {
+      setLoadingCart(false);
       setTimeout(() => {
         context.setAlertBox({
           open: false,
           message: "",
           type: "",
         });
-        setLoadingCart(false);
       }, 5000);
     }
   };
@@ -195,32 +184,6 @@ const Cart = () => {
 
   return (
     <>
-      <div className="position-fixed" style={{ right: "20px", zIndex: "100" }}>
-        {context.alertBox.open === true && (
-          <Collapse in={context.alertBox.open}>
-            <Alert
-              severity={context.alertBox.type}
-              action={
-                <IconButton
-                  aria-label="close"
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    context.setAlertBox({
-                      open: false,
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="inherit" />
-                </IconButton>
-              }
-              sx={{ mb: 2 }}
-            >
-              {context.alertBox.message}
-            </Alert>
-          </Collapse>
-        )}
-      </div>
       <section className="section cartPage">
         <div className="container">
           <h2 className="hd text-capitalize">Giỏ hàng của bạn</h2>
@@ -257,8 +220,8 @@ const Cart = () => {
                     {context.cartData?.items?.lenght !== 0 &&
                       context.cartData?.items?.map((item, index) => {
                         return (
-                          <tr>
-                            <td key={item.productId.id}>
+                          <tr key={item.productId.id}>
+                            <td>
                               <Link to={`/product/${item.productId.id}`}>
                                 <div className="d-flex align-items-center cartItemImg">
                                   <div className="imgWrapper">
@@ -389,7 +352,7 @@ const Cart = () => {
                   </span>
                 </div>
 
-                <Link to="">
+                <Link to="/checkout">
                   <Button className="w-100 btn-blue text-capitalize bg-red btn-lg btn-big btnCheckout">
                     <MdOutlineShoppingCartCheckout />
                     Đặt hàng

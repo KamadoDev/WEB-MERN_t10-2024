@@ -115,13 +115,24 @@ a {
   width: 200px; /* Đặt chiều rộng cụ thể */ /* Thêm dấu "..." */
 }
 
-.headerWrapper.sticky {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Thêm bóng mờ khi cuộn qua 200px */
-  position: sticky; 
-  top: 0;
+.headerWrapper {
+  background: #fff;
   left: 0;
+  position: fixed;
+  top: 34px;
+  top: 0;
+  transition: all 0.3s ease-in-out;
   width: 100%;
-  z-index: 1000;
+  z-index: 200;
+}
+
+.headerWrapper~section {
+  margin-top: 210px !important;
+}
+
+.headerWrapper.fixed {
+  box-shadow: 0 1px 3px #0000000f, 0 1px 2px #0000001f;
+  top: -123px;
 }
 
 @media (min-width: 1300px) {

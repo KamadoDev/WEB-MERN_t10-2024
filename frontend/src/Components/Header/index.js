@@ -72,7 +72,7 @@ const Header = () => {
 
   return (
     <>
-      <div className={`headerWrapper ${isSticky ? "sticky" : ""}`}>
+      <div className={`headerWrapper ${isSticky ? "fixed" : ""}`}>
         <div className="top-strip bg-blue">
           <div className="container">
             <p className="mb-0 mt-0 text-center">
@@ -160,7 +160,7 @@ const Header = () => {
                         </MenuItem>
                         <Divider />
 
-                        <Link to="/cart">
+                        <Link to="/my-order">
                           <MenuItem onClick={handleClose}>
                             <FaShippingFast
                               className="mr-2"
@@ -169,7 +169,7 @@ const Header = () => {
                             Đơn hàng
                           </MenuItem>
                         </Link>
-                        <Link to="/mylistHeart">
+                        <Link to="/list-heart">
                           <MenuItem onClick={handleClose}>
                             <FaHeart
                               className="mr-2"
