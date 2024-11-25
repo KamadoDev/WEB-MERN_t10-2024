@@ -1,5 +1,5 @@
 import { Button, Rating } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import QuantityBox from "../../Components/QuantityBox";
 import { GoTrash } from "react-icons/go";
 import { MdOutlineShoppingCartCheckout } from "react-icons/md";
@@ -10,6 +10,7 @@ import Voucher from "../../Components/Voucher";
 
 const Cart = () => {
   const context = useContext(MyContext);
+  const navigate = useNavigate();
   const [totalPrice, setTotalPrice] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
   const calculator = (price, discount) => {
@@ -17,6 +18,34 @@ const Cart = () => {
     const discountedPrice = price - discountPrice;
     return parseFloat(discountedPrice);
   };
+
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    setLoading(true);
+    const cachedData = localStorage.getItem("checkoutData");
+    if (cachedData) {
+      try {
+        console.log("co checkout", JSON.parse(cachedData));
+        context.setCheckoutCartData(JSON.parse(cachedData));
+        setTimeout(() => {
+          context.setAlertBox({
+            open: true,
+            message: "Đơn hàng bạn chưa hoàn thành đặt hàng!",
+            type: "error",
+          });
+          navigate("/checkout");
+          setLoading(false);
+        }, 1000);
+      } catch (err) {
+        console.error("Dữ liệu trong localStorage không hợp lệ:", err);
+        navigate("/cart");
+        setLoading(false);
+      }
+    } else {
+      navigate("/cart");
+      setLoading(false);
+    }
+  }, [navigate]);
 
   const applyDiscount = (discount, updatedPrice) => {
     // Cập nhật giá trị khi áp dụng mã giảm giá
@@ -70,11 +99,12 @@ const Cart = () => {
       });
       console.log("Response from server:", response);
       if (response.status === true) {
-        context.setAlertBox({
-          open: true,
-          message: response.message,
-          type: response.type || "success",
-        });
+        // context.setAlertBox({
+        //   open: true,
+        //   message: response.message,
+        //   type: response.type || "success",
+        // });
+        setFinalPrice(response.totalPrice)
         fetchData();
         setLoadingCart(false);
       } else {
@@ -171,9 +201,29 @@ const Cart = () => {
       console.error("Lỗi khi gọi API:", error);
     }
   };
+
   useEffect(() => {
     fetchData();
   }, [context.userData.userId]); // Phụ thuộc vào userId để gọi lại khi userId thay đổi
+
+  const handleOrder = () => {
+    if (!context.cartData?.items?.length) {
+      console.error("Giỏ hàng rỗng, không thể đặt hàng!");
+      return;
+    }
+
+    const checkoutData = {
+      items: context.cartData?.items,
+      totalPrice: finalPrice > 0 ? finalPrice : context.cartData?.totalPrice,
+      isVoucher: finalPrice === 0 ? false : true,
+    };
+
+    // Lưu vào localStorage
+    localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+
+    context.setCheckoutCartData(checkoutData);
+    navigate("/checkout");
+  };
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -192,7 +242,7 @@ const Cart = () => {
               <>
                 Có{" "}
                 <span className="badge badge-danger">
-                  {context.cartData.items.length}
+                  {context.cartData?.items?.length}
                 </span>{" "}
                 sản phẩm trong giỏ hàng của bạn
               </>
@@ -316,50 +366,54 @@ const Cart = () => {
               </div>
             </div>
 
-            <div className="col-md-3">
-              <div className="card p-3 cartDetails">
-                <h4 className="text-center text-uppercase mb-3 text-capitalize ">
-                  Tổng số giỏ hàng
-                </h4>
-                <div className="d-flex align-items-center mb-3">
-                  <span>Tổng phụ</span>
-                  <span className="priceCart ml-auto font-weight-bold">
-                    {formatCurrency(parseFloat(totalPrice))}
-                  </span>
-                </div>
-                <div className="d-flex align-items-center mb-3">
-                  <span className="text-capitalize">vận chuyển</span>
-                  <span className="ml-auto text-capitalize">
-                    <b>Miễn phí</b>
-                  </span>
-                </div>
-                {/* <div className="d-flex align-items-center mb-3">
+            {context.cartData?.items?.length > 0 && (
+              <div className="col-md-3">
+                <div className="card p-3 cartDetails">
+                  <h4 className="text-center text-uppercase mb-3 text-capitalize ">
+                    Tổng số giỏ hàng
+                  </h4>
+                  <div className="d-flex align-items-center mb-3">
+                    <span>Tổng phụ</span>
+                    <span className="priceCart ml-auto font-weight-bold">
+                      {formatCurrency(parseFloat(totalPrice))}
+                    </span>
+                  </div>
+                  <div className="d-flex align-items-center mb-3">
+                    <span className="text-capitalize">vận chuyển</span>
+                    <span className="ml-auto text-capitalize">
+                      <b>Miễn phí</b>
+                    </span>
+                  </div>
+                  {/* <div className="d-flex align-items-center mb-3">
                   <span>Estimate for</span>
                   <span className="ml-auto">
                     <b>United Kingdom</b>
                   </span>
                 </div> */}
-                <Voucher
-                  totalPrice={totalPrice}
-                  applyDiscount={applyDiscount}
-                />
-                <div className="d-flex align-items-center mb-3">
-                  <span>Tổng phải trả</span>
-                  <span className="priceCart ml-auto font-weight-bold">
-                    {formatCurrency(
-                      parseFloat(finalPrice > 0 ? finalPrice : totalPrice)
-                    )}
-                  </span>
-                </div>
+                  <Voucher
+                    totalPrice={totalPrice}
+                    applyDiscount={applyDiscount}
+                  />
+                  <div className="d-flex align-items-center mb-3">
+                    <span>Thành tiền:</span>
+                    <span className="priceCart ml-auto font-weight-bold">
+                      {formatCurrency(
+                        parseFloat(finalPrice > 0 ? finalPrice : totalPrice)
+                      )}
+                    </span>
+                  </div>
 
-                <Link to="/checkout">
-                  <Button className="w-100 btn-blue text-capitalize bg-red btn-lg btn-big btnCheckout">
+                  <Button
+                    onClick={handleOrder}
+                    className="w-100 btn-blue text-capitalize bg-red btn-lg btn-big btnCheckout"
+                    disabled={!context.cartData?.items?.length} // Vô hiệu hóa nếu giỏ hàng rỗng
+                  >
                     <MdOutlineShoppingCartCheckout />
                     Đặt hàng
                   </Button>
-                </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

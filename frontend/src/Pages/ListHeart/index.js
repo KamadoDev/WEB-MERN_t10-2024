@@ -1,17 +1,9 @@
-import { Button, Rating } from "@mui/material";
+import { Rating } from "@mui/material";
 import { Link } from "react-router-dom";
-import QuantityBox from "../../Components/QuantityBox";
 import { GoTrash } from "react-icons/go";
-import { MdOutlineShoppingCartCheckout } from "react-icons/md";
-import { BiSolidDiscount } from "react-icons/bi";
 import { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../App";
-import { deleteData, getData, putData } from "../../utils/api";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import Collapse from "@mui/material/Collapse";
-import CloseIcon from "@mui/icons-material/Close";
-import Voucher from "../../Components/Voucher";
+import { deleteData, getData } from "../../utils/api";
 
 const ListHeart = () => {
   const context = useContext(MyContext);
@@ -98,32 +90,6 @@ const ListHeart = () => {
 
   return (
     <>
-      <div className="position-fixed" style={{ right: "20px", zIndex: "100" }}>
-        {context.alertBox.open === true && (
-          <Collapse in={context.alertBox.open}>
-            <Alert
-              severity={context.alertBox.type}
-              action={
-                <IconButton
-                  aria-label="close"
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    context.setAlertBox({
-                      open: false,
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="inherit" />
-                </IconButton>
-              }
-              sx={{ mb: 2 }}
-            >
-              {context.alertBox.message}
-            </Alert>
-          </Collapse>
-        )}
-      </div>
       <section className="section cartPage">
         <div className="container">
           <h2 className="hd text-capitalize">Sản phẩm yêu thích của bạn</h2>

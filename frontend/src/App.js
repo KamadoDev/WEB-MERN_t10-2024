@@ -33,6 +33,10 @@ function App() {
   const [subCategoryData, setSubCategoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [cartData, setCartData] = useState([]);
+  const [checkoutData, setCheckoutCartData] = useState({
+    items: [],
+    totalPrice: 0,
+  });
   const [alertBox, setAlertBox] = useState({
     open: false,
     message: "",
@@ -146,6 +150,8 @@ function App() {
     setCartData,
     alertBox,
     setAlertBox,
+    checkoutData,
+    setCheckoutCartData,
   };
   return (
     <MyContext.Provider value={values}>

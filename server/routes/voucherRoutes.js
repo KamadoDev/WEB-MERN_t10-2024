@@ -246,6 +246,8 @@ router.post("/apply", verifyToken, async (req, res) => {
       message: "Voucher đã được áp dụng thành công",
       discount: discount.toFixed(2), // Định dạng giá trị giảm giá (2 chữ số thập phân)
       finalPrice: (totalPrice - discount).toFixed(2),
+      usageLimit: voucher.usageLimit,
+      usedCount: voucher.usedCount,
       status: true,
     });
   } catch (err) {

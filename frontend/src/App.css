@@ -1884,3 +1884,15 @@ footer .copyright ul li a svg {
 }
 
 /* signinPage END*/
+
+/* OderInfo */
+
+.orderInfo {
+  background-color: #f1f1f1;
+  padding: 25px !important;
+}
+
+.orderInfo thead {
+  border-bottom: 1px solid #0000001a !important;
+  border-top: 1px solid #0000001a !important;
+}

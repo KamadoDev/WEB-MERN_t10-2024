@@ -13,10 +13,6 @@ import RelatedProducts from "../../Components/RelatedProducts";
 import { deleteData, getData, postData } from "../../utils/api";
 import { MyContext } from "../../App";
 import { useContext } from "react";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import Collapse from "@mui/material/Collapse";
-import CloseIcon from "@mui/icons-material/Close";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const ProductDetails = () => {
@@ -284,32 +280,6 @@ const ProductDetails = () => {
 
   return (
     <>
-      <div className="position-fixed" style={{ right: "20px", zIndex: "100" }}>
-        {context.alertBox.open === true && (
-          <Collapse in={context.alertBox.open}>
-            <Alert
-              severity={context.alertBox.type}
-              action={
-                <IconButton
-                  aria-label="close"
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    context.setAlertBox({
-                      open: false,
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="inherit" />
-                </IconButton>
-              }
-              sx={{ mb: 2 }}
-            >
-              {context.alertBox.message}
-            </Alert>
-          </Collapse>
-        )}
-      </div>
       <section className="productDetails section">
         {loading ? (
           <div className="text-center w-100">

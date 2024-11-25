@@ -26,7 +26,7 @@ const Navigation = () => {
                   <span className="icon1 mr-2">
                     <IoIosMenu />
                   </span>
-                  <span className="text">ALL CATEGORIES</span>
+                  <span className="text">Danh mục</span>
                   <span className="icon2 ml-2">
                     <FaAngleDown />
                   </span>

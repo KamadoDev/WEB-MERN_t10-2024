@@ -8,6 +8,7 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
   const [message, setMessage] = useState("");
   const [isValid, setIsValid] = useState(null);
   const [isApplied, setIsApplied] = useState(false); // Trạng thái để kiểm soát nút
+  const [voucherData, setVoucherData] = useState(null);
 
   const handleApplyDiscount = async () => {
     const token =
@@ -30,6 +31,8 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
 
       if (response.status) {
         // Nếu mã hợp lệ
+        console.log("apply success", response);
+        setVoucherData(response);
         setMessage(response.message);
         setIsValid(true);
         setIsApplied(true); // Đánh dấu mã đã áp dụng
@@ -45,8 +48,15 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
     }
   };
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
+  };
+
   return (
-    <div className="d-flex align-items-center flex-column mb-5">
+    <div className="d-flex align-items-center flex-column mb-2">
       <p className="mb-2">Mã giảm giá (Nếu có)</p>
       <div className="discountCode">
         <div className="iconDiscount">
@@ -61,17 +71,53 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
           onChange={(e) => setDiscountCode(e.target.value)}
           disabled={isApplied} // Vô hiệu hóa nếu đã áp dụng mã giảm giá
         />
+        <p className="my-2">
+          <strong className="text-danger">Lưu ý: </strong>
+          <span style={{ fontStyle: "italic" }}>
+            Hãy chắc chắn bạn muốn đặt hàng, khi áp dụng sẽ mất số lần sử dụng
+            voucher! Xin cảm ơn.../
+          </span>
+        </p>
         <Button
           className="mt-2 text-capitalize bg-red btnCheckout"
           onClick={handleApplyDiscount}
           disabled={isApplied} // Vô hiệu hóa nếu đã áp dụng mã giảm giá
-          
         >
           Áp dụng
         </Button>
         {message && (
           <p className={`checkCode ${isValid ? "success" : "error"}`}>
             {message}
+          </p>
+        )}
+        {voucherData?.discount && (
+          <p style={{ marginTop: "25px", fontSize: "12px" }} className="mb-0">
+            Đã giảm: {formatCurrency(voucherData?.discount)}
+          </p>
+        )}
+
+        {voucherData?.usedCount && (
+          <p
+            style={{ marginTop: "", fontSize: "12px" }}
+            className={`mb-0 ${
+              voucherData?.usedCount === voucherData?.usageLimit
+                ? "text-danger"
+                : "text-success"
+            }`}
+          >
+            Đã dùng: {voucherData?.usedCount}
+          </p>
+        )}
+        {voucherData?.usageLimit && (
+          <p
+            style={{ marginTop: "", fontSize: "12px" }}
+            className={`mb-0 ${
+              voucherData?.usedCount < voucherData?.usageLimit
+                ? "text-danger"
+                : "text-danger"
+            }`}
+          >
+            Giới hạn: {voucherData?.usageLimit}
           </p>
         )}
       </div>

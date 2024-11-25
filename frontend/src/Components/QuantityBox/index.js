@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 const QuantityBox = (props) => {
   const [inputVal, setInputval] = useState(props.quantity || 1);
-
   const MinVal = () => {
     if (inputVal > 1) {
       setInputval(inputVal - 1);
