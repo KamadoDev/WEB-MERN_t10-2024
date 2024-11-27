@@ -79,14 +79,14 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
           </span>
         </p>
         <Button
-          className="mt-2 text-capitalize bg-red btnCheckout"
+          className="my-3 text-capitalize bg-red btnCheckout"
           onClick={handleApplyDiscount}
           disabled={isApplied} // Vô hiệu hóa nếu đã áp dụng mã giảm giá
         >
           Áp dụng
         </Button>
         {message && (
-          <p className={`checkCode ${isValid ? "success" : "error"}`}>
+          <p style={{ marginTop: "-10px", fontSize: "12px" }} className={`checkCode ${isValid ? "success" : "error"}`}>
             {message}
           </p>
         )}

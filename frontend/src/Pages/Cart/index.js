@@ -13,33 +13,38 @@ const Cart = () => {
   const navigate = useNavigate();
   const [totalPrice, setTotalPrice] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
+  const [isVoucher, setIsVoucher] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const calculator = (price, discount) => {
     const discountPrice = price * (discount / 100);
     const discountedPrice = price - discountPrice;
     return parseFloat(discountedPrice);
   };
 
-  const [loading, setLoading] = useState(false);
   useEffect(() => {
     setLoading(true);
     const cachedData = localStorage.getItem("checkoutData");
     if (cachedData) {
-      try {
-        console.log("co checkout", JSON.parse(cachedData));
-        context.setCheckoutCartData(JSON.parse(cachedData));
-        setTimeout(() => {
-          context.setAlertBox({
-            open: true,
-            message: "Đơn hàng bạn chưa hoàn thành đặt hàng!",
-            type: "error",
-          });
-          navigate("/checkout");
+      const orderCachedData = JSON.parse(cachedData);
+      console.log("orderCached data", orderCachedData);
+      if (orderCachedData.userId === context.userData.userId) {
+        try {
+          context.setCheckoutCartData(orderCachedData);
+          setTimeout(() => {
+            context.setAlertBox({
+              open: true,
+              message: "Bạn có muốn đặt đơn hàng này!",
+              type: "error",
+            });
+            navigate("/checkout");
+            setLoading(false);
+          }, 1000);
+        } catch (err) {
+          console.error("Dữ liệu trong localStorage không hợp lệ:", err);
+          navigate("/cart");
           setLoading(false);
-        }, 1000);
-      } catch (err) {
-        console.error("Dữ liệu trong localStorage không hợp lệ:", err);
-        navigate("/cart");
-        setLoading(false);
+        }
       }
     } else {
       navigate("/cart");
@@ -50,6 +55,7 @@ const Cart = () => {
   const applyDiscount = (discount, updatedPrice) => {
     // Cập nhật giá trị khi áp dụng mã giảm giá
     setFinalPrice(updatedPrice);
+    setIsVoucher(true);
   };
 
   const handleQuantityChange = (newQuantity, productId, size, color) => {
@@ -104,7 +110,7 @@ const Cart = () => {
         //   message: response.message,
         //   type: response.type || "success",
         // });
-        setFinalPrice(response.totalPrice)
+        setFinalPrice(response.totalPrice);
         fetchData();
         setLoadingCart(false);
       } else {
@@ -215,7 +221,8 @@ const Cart = () => {
     const checkoutData = {
       items: context.cartData?.items,
       totalPrice: finalPrice > 0 ? finalPrice : context.cartData?.totalPrice,
-      isVoucher: finalPrice === 0 ? false : true,
+      isVoucher: isVoucher,
+      userId: context.userData.userId,
     };
 
     // Lưu vào localStorage

@@ -5,8 +5,14 @@ import Select from "@mui/material/Select";
 import React, { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../App";
 import axios from "axios";
-import { Button } from "@mui/material";
-import ProvincesVietNam from "../../Components/ProvincesVietNam";
+import {
+  Button,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const Checkout = () => {
@@ -21,6 +27,7 @@ const Checkout = () => {
     ward: "",
     note: "",
     date: "",
+    paymentMethod: "",
   });
 
   const handleInputChange = (e) => {
@@ -117,21 +124,6 @@ const Checkout = () => {
     setSelectedWard(selected || { code: "", name: "" });
   };
 
-  useEffect(() => {
-    const cachedData = localStorage.getItem("checkoutData");
-    if (cachedData) {
-      try {
-        console.log("co checkout", JSON.parse(cachedData));
-        context.setCheckoutCartData(JSON.parse(cachedData));
-      } catch (err) {
-        console.error("Dữ liệu trong localStorage không hợp lệ:", err);
-        navigate("/cart");
-      }
-    } else {
-      navigate("/cart");
-    }
-  }, [navigate]);
-
   const handleCancelOrder = () => {
     localStorage.removeItem("checkoutData"); // Xóa dữ liệu từ localStorage
     setTimeout(() => {
@@ -154,6 +146,9 @@ const Checkout = () => {
 
     const checkoutData = {
       ...formFields,
+      userId: context.checkoutData.userId,
+      items: context.checkoutData.items,
+      isVoucher: context.checkoutData.isVoucher,
       province: selectedProvince.name,
       provinceCode: selectedProvince.code,
       district: selectedDistrict.name,
@@ -169,45 +164,7 @@ const Checkout = () => {
       }),
     };
 
-    var options = {
-      key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-      key_secret: process.env.REACT_APP_RAZORPAY_KEY_SECRET,
-      amount: parseInt(context.checkoutData?.totalPrice) * 100, // amount should be in paise
-      currency: "INR",
-      order_receipt: "oder_receipt_" + formFields.fullName,
-      name: "SpaceX",
-      description: "Test Transaction",
-      handler: function (res) {
-        console.log(res);
-        const paymentId = res.razorpay_payment_id;
-        const payLoad = {
-          data: {
-            name: formFields.fullName,
-            phone: formFields.phone,
-            email: formFields.email,
-            address: `${formFields.address}, ${selectedProvince.name}, ${selectedDistrict.name}, ${selectedWard.name}`,
-            totalPrice: context.checkoutData.totalPrice,
-            paymentId,
-            userId: context.userData.userId,
-            products: context.checkoutData,
-            date: new Date().toLocaleString("vi-VN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-            }),
-          },
-        };
-        console.log(payLoad.data);
-      },
-      theme: {
-        color: "#3399cc",
-      },
-    };
-
-    var pay = new window.Razorpay(options);
-    pay.open();
+    console.log("đặt hàng: ", checkoutData);
   };
 
   return (
@@ -226,7 +183,7 @@ const Checkout = () => {
                   </span>
                 </p>
                 <div className="row">
-                  <div className="col-md-4">
+                  <div className="col-md-6">
                     <div className="form-group">
                       <InputLabel id="demo-simple-select-label">
                         Họ và tên
@@ -239,10 +196,11 @@ const Checkout = () => {
                         name="fullName"
                         onChange={handleInputChange}
                         error={formFields.fullName === "" ? true : false}
+                        fullWidth
                       />
                     </div>
                   </div>
-                  <div className="col-md-4">
+                  <div className="col-md-6">
                     <div className="form-group">
                       <InputLabel id="demo-simple-select-label">
                         Số điện thoại
@@ -255,24 +213,12 @@ const Checkout = () => {
                         name="phone"
                         onChange={handleInputChange}
                         error={formFields.phone === "" ? true : false}
+                        fullWidth
                       />
                     </div>
                   </div>
-                  <div className="col-md-4">
-                    <div className="form-group">
-                      <InputLabel id="demo-simple-select-label">
-                        Email
-                      </InputLabel>
-                      <TextField
-                        id="outlined-basic"
-                        label="Email (Không bắt buộc)"
-                        variant="outlined"
-                        name="email"
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                  {/* <ProvincesVietNam getProvinces={getProvinces} /> */}
+                </div>
+                <div className="row">
                   <div className="col-md-4">
                     <div className="form-group">
                       <InputLabel
@@ -384,7 +330,6 @@ const Checkout = () => {
                         sx={{ width: "100%" }}
                         name="note"
                         onChange={handleInputChange}
-                        error={formFields.note === "" ? true : false}
                       />
                     </div>
                   </div>
@@ -416,6 +361,38 @@ const Checkout = () => {
                           })}
                       </tbody>
                     </table>
+
+                    <div className="d-flex align-items-center mb-3">
+                      <FormControl>
+                        <FormLabel id="demo-controlled-radio-buttons-group">
+                          Phương thức thanh toán
+                        </FormLabel>
+                        <RadioGroup
+                          aria-labelledby="demo-radio-buttons-group-label"
+                          defaultValue="female"
+                          name="radio-buttons-group"
+                          value={formFields.paymentMethod} // Liên kết giá trị
+                          onChange={(e) =>
+                            setFormFields({
+                              ...formFields,
+                              paymentMethod: e.target.value,
+                            })
+                          }
+                        >
+                          <FormControlLabel
+                            value="cash"
+                            control={<Radio />}
+                            label="Thanh toán khi nhận hàng"
+                          />
+                          <FormControlLabel
+                            value="payment"
+                            control={<Radio />}
+                            disabled
+                            label="Thanh toán trực tuyến(Đang phát triển...)"
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </div>
                     <div className="d-flex align-items-center mb-3">
                       <span className="text-success mr-2">
                         {context.checkoutData?.isVoucher === true
@@ -439,7 +416,6 @@ const Checkout = () => {
                       Đặt hàng
                     </Button>
                     <Button
-                      type="submit"
                       fullWidth
                       className="btn-blue  btn-lg btn-big"
                       onClick={handleCancelOrder}
