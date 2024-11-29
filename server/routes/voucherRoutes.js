@@ -248,6 +248,14 @@ router.post("/apply", verifyToken, async (req, res) => {
       finalPrice: (totalPrice - discount).toFixed(2),
       usageLimit: voucher.usageLimit,
       usedCount: voucher.usedCount,
+      voucherCode: voucher.code,
+      applyDate: new Date().toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      }), // Thêm ngày áp dụng
       status: true,
     });
   } catch (err) {

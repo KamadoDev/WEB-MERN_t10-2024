@@ -121,7 +121,7 @@ const ListHeart = () => {
                     {listHeart?.products?.lenght !== 0 &&
                       listHeart?.products?.map((item, index) => {
                         return (
-                          <tr key={item.productId.id}>
+                          <tr key={index}>
                             <td>
                               <Link to={`/product/${item.productId.id}`}>
                                 <div className="d-flex align-items-center cartItemImg">

@@ -192,13 +192,13 @@ img {
 }
 
 .headerWrapper .top-strip {
-  background-color: #000;
+  background-color: #007aff;
   padding: 8px 0px;
 }
 .headerWrapper .top-strip p {
   color: #fff;
   font-weight: 500;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .headerWrapper {
@@ -255,7 +255,7 @@ img {
 
 /* header search */
 .headerSearch {
-  width: 54%;
+  width: 70%;
   height: 60px;
   background-color: #f3f4f7;
   padding: 5px;

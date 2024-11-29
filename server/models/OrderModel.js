@@ -28,10 +28,24 @@ const OrderSchema = new mongoose.Schema(
         images: [String],
       },
     ],
-    isVouched: {
-      type: Boolean,
-      default: false,
-    },
+    isVouched: [
+      {
+        isVoucher: {
+          type: Boolean,
+          default: false, // Đặt giá trị mặc định là false cho thuộc tính isVoucher
+        },
+        voucherCode: {
+          type: String,
+        },
+        discountPercentage: {
+          type: Number,
+        },
+        appliedDate: {
+          type: String,
+        },
+      },
+    ],
+
     totalPrice: {
       type: Number,
       required: true,
@@ -43,11 +57,13 @@ const OrderSchema = new mongoose.Schema(
       districtCode: String,
       ward: String,
       wardCode: String,
-      detail: String, // Số nhà, tên đường...
+      phone: String,
+      detail: String,
+      notes: String,
     },
     paymentMethod: {
       type: String,
-      default: "Cash on Delivery",
+      required: true,
     },
     orderDate: {
       type: Date,

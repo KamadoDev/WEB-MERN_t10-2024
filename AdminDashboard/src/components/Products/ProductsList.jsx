@@ -94,6 +94,13 @@ const ProductsList = (props) => {
     }
   }, [context.openDraw, page, context]);
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
+  };
+
   return (
     <>
       <Drawer
@@ -171,10 +178,10 @@ const ProductsList = (props) => {
                   <th className="align-middle" scope="row">
                     {index + 1}
                   </th>
-                  <td className="align-middle text-right">
+                  <td className="align-middle text-left">
                     <div className="info">
                       <Link to={`/products/detail/${item._id}`}>
-                        <h6>{item.name}</h6>
+                        <h6>{item.name.substr(0, 15) + "..."}</h6>
                       </Link>
                     </div>
                   </td>
@@ -196,7 +203,9 @@ const ProductsList = (props) => {
                     {item.sub_category?.name || "N/A"}
                   </td>
                   <td className="align-middle w-[15%] text-center">
-                    <span className="badge badge-danger p-2 text-white">{item.brand}</span>
+                    <span className="badge badge-danger p-2 text-white">
+                      {item.brand}
+                    </span>
                   </td>
                   <td className="align-middle w-[5%] text-center">
                     <Stack spacing={1}>
@@ -211,9 +220,11 @@ const ProductsList = (props) => {
                   </td>
                   <td className="align-middle w-[15%] text-center">
                     <div>
-                      <del className="old">{item.old_price}</del>
+                      <del className="old">
+                        {formatCurrency(item.old_price || 0)}
+                      </del>
                       <span className="new text-danger  d-block w-100">
-                        {item.price}
+                        {formatCurrency(item.price || 0)}
                       </span>
                     </div>
                   </td>

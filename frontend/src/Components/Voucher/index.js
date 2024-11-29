@@ -3,7 +3,13 @@ import { BiSolidDiscount } from "react-icons/bi";
 import { postData } from "../../utils/api";
 import { Button } from "@mui/material";
 
-const Voucher = ({ totalPrice, applyDiscount }) => {
+const Voucher = ({
+  totalPrice,
+  applyDiscount,
+  AppliedDate,
+  DiscountPercentage,
+  VoucherCode,
+}) => {
   const [discountCode, setDiscountCode] = useState("");
   const [message, setMessage] = useState("");
   const [isValid, setIsValid] = useState(null);
@@ -37,6 +43,9 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
         setIsValid(true);
         setIsApplied(true); // Đánh dấu mã đã áp dụng
         applyDiscount(response.discount, response.finalPrice);
+        AppliedDate(response.applyDate);
+        DiscountPercentage(response.discount);
+        VoucherCode(response.voucherCode)
       } else {
         // Nếu mã không hợp lệ
         setMessage(response.message);
@@ -86,8 +95,19 @@ const Voucher = ({ totalPrice, applyDiscount }) => {
           Áp dụng
         </Button>
         {message && (
-          <p style={{ marginTop: "-10px", fontSize: "12px" }} className={`checkCode ${isValid ? "success" : "error"}`}>
+          <p
+            style={{ marginTop: "-10px", fontSize: "12px" }}
+            className={`checkCode ${isValid ? "success" : "error"}`}
+          >
             {message}
+          </p>
+        )}
+        {voucherData?.applyDate && (
+          <p
+            style={{ marginTop: "7px", fontSize: "12px" }}
+            className={`checkCode ${isValid ? "success" : "error"}`}
+          >
+            {voucherData?.applyDate}
           </p>
         )}
         {voucherData?.discount && (

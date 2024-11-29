@@ -14,6 +14,9 @@ const Cart = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
   const [isVoucher, setIsVoucher] = useState(false);
+  const [appliedDate, setAppliedDate] = useState("");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const calculator = (price, discount) => {
@@ -56,6 +59,18 @@ const Cart = () => {
     // Cập nhật giá trị khi áp dụng mã giảm giá
     setFinalPrice(updatedPrice);
     setIsVoucher(true);
+  };
+  const AppliedDate = (AppliedDate) => {
+    setAppliedDate(AppliedDate);
+    console.log("applyDate", AppliedDate);
+  };
+  const DiscountPercentage = (DiscountPercentage) => {
+    setDiscountPercentage(DiscountPercentage);
+    console.log("DiscountPercentage", DiscountPercentage);
+  };
+  const VoucherCode = (voucherCode) => {
+    setVoucherCode(voucherCode);
+    console.log("voucherCode", voucherCode);
   };
 
   const handleQuantityChange = (newQuantity, productId, size, color) => {
@@ -221,7 +236,10 @@ const Cart = () => {
     const checkoutData = {
       items: context.cartData?.items,
       totalPrice: finalPrice > 0 ? finalPrice : context.cartData?.totalPrice,
-      isVoucher: isVoucher,
+      isVoucher: isVoucher ? isVoucher : false,
+      appliedDate: appliedDate ? appliedDate : "",
+      voucherCode: voucherCode ? voucherCode : "",
+      discountPercentage: discountPercentage,
       userId: context.userData.userId,
     };
 
@@ -400,6 +418,9 @@ const Cart = () => {
                   <Voucher
                     totalPrice={totalPrice}
                     applyDiscount={applyDiscount}
+                    AppliedDate={AppliedDate}
+                    DiscountPercentage={DiscountPercentage}
+                    VoucherCode={VoucherCode}
                   />
                   <div className="d-flex align-items-center mb-3">
                     <span>Thành tiền:</span>

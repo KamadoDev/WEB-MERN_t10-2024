@@ -14,6 +14,7 @@ import {
   RadioGroup,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { postData } from "../../utils/api";
 
 const Checkout = () => {
   const context = useContext(MyContext);
@@ -21,12 +22,8 @@ const Checkout = () => {
   const [formFields, setFormFields] = useState({
     fullName: "",
     phone: "",
-    address: "",
-    province: "",
-    district: "",
-    ward: "",
-    note: "",
-    date: "",
+    detail: "",
+    notes: "",
     paymentMethod: "",
   });
 
@@ -141,30 +138,81 @@ const Checkout = () => {
     }, 1000);
   };
 
-  const handleCheckout = (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const checkoutData = {
       ...formFields,
       userId: context.checkoutData.userId,
       items: context.checkoutData.items,
       isVoucher: context.checkoutData.isVoucher,
+      voucherCode: context.checkoutData.voucherCode,
+      discountPercentage: context.checkoutData.discountPercentage,
+      totalPrice: context.checkoutData.totalPrice,
+      appliedDate: context.checkoutData.appliedDate,
       province: selectedProvince.name,
       provinceCode: selectedProvince.code,
       district: selectedDistrict.name,
       districtCode: selectedDistrict.code,
       ward: selectedWard.name,
       wardCode: selectedWard.code,
-      date: new Date().toLocaleString("vi-VN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-      }),
     };
 
-    console.log("đặt hàng: ", checkoutData);
+    try {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      // Gọi API và đợi kết quả trả về
+      const response = await postData("/api/order/create", checkoutData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thay bằng token thật
+        },
+      });
+
+      // Kiểm tra phản hồi
+      if (response.status) {
+        console.log("Đã đặt đơn hàng", response.message);
+        context.setAlertBox({
+          open: true,
+          message: response.message, // Lấy message từ response
+          type: response.type || "success",
+        });
+        context.setCartData([]);
+        context.setCheckoutCartData([])
+        localStorage.removeItem("checkoutData");
+        setTimeout(() => {
+          navigate("/my-order"); // Điều hướng về đơn hàng người dùng
+        }, 1000);
+        setLoading(false);
+      } else {
+        console.log(response.message);
+        context.setAlertBox({
+          open: true,
+          message: response.message, // Lấy message từ response khi lỗi
+          type: response.type || "error",
+        });
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log("Lỗi khi gửi dữ liệu: ", error.message);
+      context.setAlertBox({
+        open: true,
+        message: "Đã xảy ra lỗi khi đặt hàng", // Thông báo lỗi khi không gọi được API
+        type: "error",
+      });
+      setLoading(false);
+    } finally {
+      setTimeout(() => {
+        context.setAlertBox({
+          open: false,
+          message: "",
+          type: "",
+        });
+        setLoading(false);
+      }, 5000);
+    }
   };
 
   return (
@@ -308,9 +356,9 @@ const Checkout = () => {
                         multiline
                         rows={1}
                         sx={{ width: "100%" }}
-                        name="address"
+                        name="detail"
                         onChange={handleInputChange}
-                        error={formFields.address === "" ? true : false}
+                        error={formFields.detail === "" ? true : false}
                       />
                     </div>
                   </div>
@@ -328,7 +376,7 @@ const Checkout = () => {
                         multiline
                         rows={4}
                         sx={{ width: "100%" }}
-                        name="note"
+                        name="notes"
                         onChange={handleInputChange}
                       />
                     </div>

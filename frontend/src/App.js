@@ -17,6 +17,7 @@ import ListHeart from "./Pages/ListHeart";
 import CloseIcon from "@mui/icons-material/Close";
 import { Alert, Collapse, IconButton } from "@mui/material";
 import Checkout from "./Pages/Checkout";
+import MyOrder from "./Pages/MyOrder";
 
 const MyContext = createContext();
 function App() {
@@ -191,6 +192,7 @@ function App() {
         <Route path="/signIn" exact={true} element={<AuthSignIn />} />
         <Route path="/signUp" exact={true} element={<AuthSignUp />} />
         <Route path="/checkout" exact={true} element={<Checkout />} />
+        <Route path="/my-order" exact={true} element={<MyOrder />} />
       </Routes>
       {isHeaderFooterShow === true && <Footer />}
       {isOpenProductModal.open === true && <ProductModal data={productData} />}

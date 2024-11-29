@@ -76,8 +76,7 @@ const Header = () => {
         <div className="top-strip bg-blue">
           <div className="container">
             <p className="mb-0 mt-0 text-center">
-              Due to the <strong>COVID 19</strong> epidemic, orders may be
-              processed with a slight delay
+              Xin chào! Chào mừng đến với trang web của chúng tôi.
             </p>
           </div>
         </div>
@@ -92,7 +91,7 @@ const Header = () => {
               </div>
 
               <div className="col-sm-10 d-flex align-items-center part2">
-                {context.countryList.lenght !== 0 && <CountryDropdown />}
+                {/* {context.countryList.lenght !== 0 && <CountryDropdown />} */}
 
                 {/* Header Search Start Here */}
                 <SearchBox />
@@ -191,7 +190,7 @@ const Header = () => {
                   )}
                   <div className="ml-auto cartTab d-flex align-items-center">
                     <span className="price">
-                      {formatCurrency(parseFloat(context.cartData?.totalPrice))}
+                      {formatCurrency(parseFloat(context.cartData?.totalPrice) || 0)}
                     </span>
                     <div className=" position-relative ml-2">
                       <Link to="/cart">
