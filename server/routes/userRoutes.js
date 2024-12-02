@@ -15,29 +15,65 @@ const router = express.Router();
 const cloudinary = require("../cloudinaryConfig");
 const upload = require("../middlewares/multer");
 const fs = require("fs");
+const { ppid } = require("process");
 require("dotenv").config();
 
-router.get("/users", async (req, res) => {
+router.get("/users", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
-    // Lấy tất cả người dùng
-    const users = await UserModel.find().select("-password"); // Lấy tất cả trường trừ trường password
+    const page = parseInt(req.query.page, 10) || 1; // Lấy trang hiện tại từ query hoặc mặc định là 1
+    const perPage = 12; // Số lượng người dùng mỗi trang
 
-    // Kiểm tra nếu không có người dùng nào
-    if (!users || users.length === 0) {
-      return res.status(404).json({
+    // Kiểm tra nếu page không phải là số hợp lệ
+    if (isNaN(page) || page < 1) {
+      return res.status(400).json({
         success: false,
-        message: "Không có người dùng nào.",
+        message: "Invalid page number",
       });
     }
 
-    res.status(200).json({
+    // Lấy tổng số người dùng
+    const totalUsers = await UserModel.countDocuments();
+
+    // Tính tổng số trang
+    const totalPages = Math.ceil(totalUsers / perPage);
+
+    // Kiểm tra nếu page lớn hơn tổng số trang
+    if (page > totalPages) {
+      return res.status(404).json({
+        success: false,
+        message: "Page not found",
+      });
+    }
+
+    // Truy vấn người dùng với phân trang
+    const userList = await UserModel.find()
+      .select("-password") // Loại bỏ trường mật khẩu khỏi kết quả
+      .skip((page - 1) * perPage) // Bỏ qua người dùng theo số trang
+      .limit(perPage) // Giới hạn số lượng người dùng mỗi trang
+      .exec();
+
+    // Kiểm tra nếu không có người dùng
+    if (userList.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No users available",
+      });
+    }
+
+    // Trả về thông tin người dùng và phân trang
+    return res.status(200).json({
       success: true,
-      users,
+      users: userList,
+      totalPages,
+      currentPage: page,
+      totalItems: totalUsers,
+      perPage,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("Error fetching users:", error);
+    return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "An error occurred while fetching users",
       error: error.message,
     });
   }
@@ -78,7 +114,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyToken, checkAdminOrOwner,  async (req, res) => {
+router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -361,97 +397,173 @@ router.post("/authencation/signin", async (req, res) => {
   }
 });
 
-// API cập nhật thông tin người dùng
-router.put("/:id", upload.single("avatar"), verifyToken, checkAdminOrOwner,  async (req, res) => {
+router.post("/authWithGoogle", async (req, res) => {
+  const { fullName, email, images } = req.body;
+
   try {
-    const { id } = req.params;
-    const { username, email, phone, fullName, role, isActive } = req.body;
+    // Check if the user exists in the database
+    const existingUser = await UserModel.findOne({ email: email });
 
-    // Kiểm tra ID hợp lệ
-    const { ObjectId } = require("mongoose").Types;
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID không hợp lệ.",
+    if (!existingUser) {
+      // Handle the case where the user does not exist, and create a new user
+      const username = fullName.split(" ").join("").toLowerCase(); // Create a simple username from fullName
+
+      // Generate a random phone number
+      const randomPhone = `034${Math.floor(1000000 + Math.random() * 9000000)}`; // Random 7-digit phone number
+
+      const user = new UserModel({
+        username, // Ensure a username is always generated
+        fullName,
+        email,
+        phone: randomPhone, // Use the generated random phone
+        password: "PasswordGoogle@12", // Set password to null as Google sign-in doesn’t provide one
+        avatar: images,
+        role: "user",
+        isActive: true,
+      });
+
+      // Save user to the database
+      await user.save();
+
+      // Generate a token for the new user
+      const token = generateToken(user);
+
+      return res.status(201).json({
+        success: true,
+        message: "Đăng ký thành công.",
+        user,
+        token,
+      });
+    } else {
+      // If user exists, generate a token for the existing user
+      const token = generateToken(existingUser);
+      return res.status(200).json({
+        success: true,
+        message: "Đăng nhập thành công.",
+        user: existingUser,
+        token,
       });
     }
-
-    // Tìm user
-    const user = await UserModel.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy người dùng.",
-      });
-    }
-
-    // Kiểm tra email
-    if (email && !isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Email không hợp lệ.",
-      });
-    }
-
-    // Kiểm tra số điện thoại
-    if (phone && !isValidPhone(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Số điện thoại không hợp lệ.",
-      });
-    }
-
-    // Xử lý avatar nếu có file upload
-    let updatedAvatar = user.avatar;
-    if (req.file) {
-      try {
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          public_id: `user_${id}`,
-          overwrite: true,
-        });
-        updatedAvatar = result.secure_url;
-
-        // Xóa file tạm
-        fs.unlinkSync(req.file.path);
-      } catch (uploadError) {
-        return res.status(500).json({
-          success: false,
-          message: "Không thể tải lên ảnh avatar.",
-          error: uploadError.message,
-        });
-      }
-    }
-
-    // Cập nhật thông tin
-    const updatedData = {
-      username: username || user.username,
-      email: email || user.email,
-      phone: phone || user.phone,
-      fullName: fullName || user.fullName,
-      role: role || user.role,
-      isActive: isActive === undefined ? user.isActive : isActive,
-      avatar: updatedAvatar,
-    };
-
-    const updatedUser = await UserModel.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
-
-    // Trả về kết quả
-    res.status(200).json({
-      success: true,
-      message: "Cập nhật thông tin người dùng thành công.",
-      user: updatedUser,
-    });
   } catch (error) {
-    // Xóa file tạm nếu có lỗi
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    console.error("Error updating user:", error);
-    handleError(res, error);
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Có lỗi xảy ra. Vui lòng thử lại sau.",
+    });
   }
 });
+
+// API cập nhật thông tin người dùng
+router.put(
+  "/:id",
+  upload.single("avatar"),
+  verifyToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { username, email, phone, fullName, role, isActive, password } =
+        req.body;
+
+      // Kiểm tra ID hợp lệ
+      const { ObjectId } = require("mongoose").Types;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "ID không hợp lệ.",
+        });
+      }
+
+      // Tìm user
+      const user = await UserModel.findById(id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy người dùng.",
+        });
+      }
+
+      // Kiểm tra email
+      if (email && !isValidEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Email không hợp lệ.",
+        });
+      }
+
+      // Kiểm tra số điện thoại
+      if (phone && !isValidPhone(phone)) {
+        return res.status(400).json({
+          success: false,
+          message: "Số điện thoại không hợp lệ.",
+        });
+      }
+
+      // Kiểm tra mật khẩu nếu có
+      let hashedPassword;
+      if (password) {
+        if (!isValidPassword(password)) {
+          return res.status(400).json({
+            success: false,
+            message: "Mật khẩu không hợp lệ.",
+          });
+        }
+        hashedPassword = await hashPassword(password);
+      }
+
+      // Xử lý avatar nếu có file upload
+      let updatedAvatar = user.avatar;
+      if (req.file) {
+        try {
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            public_id: `user_${id}`,
+            overwrite: true,
+          });
+          updatedAvatar = result.secure_url;
+
+          // Xóa file tạm
+          fs.unlinkSync(req.file.path);
+        } catch (uploadError) {
+          return res.status(500).json({
+            success: false,
+            message: "Không thể tải lên ảnh avatar.",
+            error: uploadError.message,
+          });
+        }
+      }
+
+      // Cập nhật thông tin
+      const updatedData = {
+        username: username || user.username,
+        email: email || user.email,
+        phone: phone || user.phone,
+        fullName: fullName || user.fullName,
+        role: role || user.role,
+        isActive: isActive === undefined ? user.isActive : isActive,
+        avatar: updatedAvatar,
+        ...(hashedPassword && { password: hashedPassword }), // Nếu có mật khẩu, thêm vào dữ liệu cần cập nhật
+      };
+
+      const updatedUser = await UserModel.findByIdAndUpdate(id, updatedData, {
+        new: true,
+        runValidators: true,
+      }).select("-password");
+
+      // Trả về kết quả
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thông tin người dùng thành công.",
+        user: updatedUser,
+      });
+    } catch (error) {
+      // Xóa file tạm nếu có lỗi
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      console.error("Error updating user:", error);
+      handleError(res, error);
+    }
+  }
+);
 
 module.exports = router;

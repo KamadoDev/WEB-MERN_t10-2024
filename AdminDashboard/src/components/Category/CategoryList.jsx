@@ -214,7 +214,7 @@ const CategoryList = (props) => {
 
         <div className="flex items-center justify-end py-3 pr-3">
           <div>
-            Page <strong>{page}</strong> Show{" "}
+            Trang <strong>{page}</strong> Hiện{" "}
             <strong>
               {Array.isArray(dataCat) && dataCat.length > 0
                 ? dataCat.length

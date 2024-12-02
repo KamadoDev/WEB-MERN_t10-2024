@@ -61,7 +61,7 @@ const Dashboard = () => {
           />
         </div>
 
-        <ProductsList title="Best Selling Products" isSharedPage={true} />
+        <ProductsList title="Sản phẩm bán chạy" isSharedPage={true} />
 
         <div className="row mt-3">
           <div className="col-md-6">

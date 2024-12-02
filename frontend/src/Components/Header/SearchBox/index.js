@@ -1,6 +1,10 @@
 import { IoIosSearch } from "react-icons/io";
 import Button from "@mui/material/Button";
 import { useEffect, useState } from "react";
+import { getData } from "../../../utils/api";
+import { useContext } from "react";
+import { MyContext } from "../../../App";
+import { useNavigate } from "react-router-dom";
 
 const SearchBox = () => {
   const suggestions = [
@@ -45,11 +49,48 @@ const SearchBox = () => {
     return () => clearTimeout(timeout); // Dọn dẹp timeout
   }, [charIndex, isDeleting, currentIndex, suggestions]);
 
+  const [searchFields, setSearchFields] = useState("");
+  const context = useContext(MyContext);
+  const navigate = useNavigate();
+
+  const onChangeValue = (e) => {
+    e.preventDefault();
+    setSearchFields(e.target.value);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await getData(`/api/search?q=${searchFields}`);
+
+      // Kiểm tra nếu phản hồi thành công và có dữ liệu
+      if (response.success) {
+        console.log("Tìm kiếm", response);
+        context.setSearchQuery(searchFields); // Cập nhật từ khóa tìm kiếm
+        context.setSearchData({
+          items: response.items,
+          totalPages: response.totalPages,
+          totalItems: response.totalItems,
+        }); // Cập nhật dữ liệu tìm kiếm
+        navigate("/search"); // Chuyển hướng đến trang kết quả
+      } else {
+        console.log("Không có sản phẩm nào tìm thấy");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi khi tìm kiếm:", error);
+    }
+  };
+
   return (
     <>
       <div className="headerSearch ml-3 mr-3">
-        <input type="text" placeholder={placeholder} className="search-input" />
-        <Button>
+        <input
+          type="text"
+          placeholder={placeholder}
+          className="search-input"
+          onChange={onChangeValue}
+        />
+        <Button onClick={handleSearch}>
           <IoIosSearch />
         </Button>
       </div>

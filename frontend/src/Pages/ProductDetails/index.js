@@ -307,9 +307,17 @@ const ProductDetails = () => {
                   </li>
                   <li className="list-inline-item ">
                     <div className="d-flex align-items-center ">
-                      <span className="text-gray mr-2">Danh mục:</span>
+                      <span className="text-gray mr-2">Loại Danh mục:</span>
                       <span className="text-drak badge badge-info p-1">
                         {product?.product?.category?.name}
+                      </span>
+                    </div>
+                  </li>
+                  <li className="list-inline-item ">
+                    <div className="d-flex align-items-center ">
+                      <span className="text-gray mr-2">Danh mục phụ:</span>
+                      <span className="text-drak badge badge-info p-1">
+                        {product?.product?.sub_category?.name}
                       </span>
                     </div>
                   </li>

@@ -20,6 +20,8 @@ const voucherRoutes = require("./routes/voucherRoutes");
 const favoriteProductRoutes = require("./routes/favoriteProductRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const slideBannerRoutes = require("./routes/slideBannerRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
 app.use(`/api/user`, userRoutes);
 app.use(`/api/cart`, cartRoutes);
@@ -30,6 +32,8 @@ app.use(`/api/voucher`, voucherRoutes);
 app.use(`/api/favorite`, favoriteProductRoutes);
 app.use(`/api/review`, reviewRoutes);
 app.use(`/api/order`, orderRoutes);
+app.use(`/api/slideBanner`, slideBannerRoutes);
+app.use(`/api/search`, searchRoutes);
 
 //Database
 mongoose

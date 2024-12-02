@@ -5,16 +5,38 @@ import { Swiper, SwiperSlide } from "swiper/react";
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
-import bannerTet from "../../assets/images/banner-tet.jpg"
-import bannerTet1 from "../../assets/images/banner-tet-la-gi.jpg"
-import bannerTet2 from "../../assets/images/tet2.jpg"
 
 // import required modules
 import { Autoplay, Navigation } from "swiper/modules";
+import { useState } from "react";
+import { getData } from "../../utils/api";
+import { useEffect } from "react";
 const HomeBanner = () => {
+  const [dataSlides, setDataSlides] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const res = await getData(`/api/slideBanner/`);
+      if (res) {
+        console.log(res.data);
+        setDataSlides(res.data);
+      } else {
+        setDataSlides([]);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // Thêm thông báo lỗi cho người dùng nếu cần
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchData();
+  }, []);
+
   return (
     <>
-      <div className="container" style={{marginTop: "230px"}}>
+      <div className="container" style={{ marginTop: "230px" }}>
         <div className="homeBannerSection mt-4">
           <Swiper
             autoplay={{
@@ -27,36 +49,22 @@ const HomeBanner = () => {
             modules={[Autoplay, Navigation]}
             className="mySwiper"
           >
-            <SwiperSlide>
-              <div className="item">
-                <img
-                  src={bannerTet}
-                  alt=""
-                  className="w-100"
-                  style={{height: "369px"}}
-                />
-              </div>
-            </SwiperSlide>
-            <SwiperSlide>
-              <div className="item">
-                <img
-                  src={bannerTet1}
-                  alt=""
-                  className="w-100"
-                  style={{height: "369px"}}
-                />
-              </div>
-            </SwiperSlide>
-            <SwiperSlide>
-              <div className="item">
-                <img
-                  src={bannerTet2}
-                  alt=""
-                  className="w-100"
-                  style={{height: "369px"}}
-                />
-              </div>
-            </SwiperSlide>
+            {dataSlides?.map((slide, index) => {
+              return (
+                <>
+                  <SwiperSlide key={index}>
+                    <div className="item">
+                      <img
+                        src={slide.images[0].url}
+                        alt={slide.images[0].url}
+                        className="w-100"
+                        style={{ height: "369px" }}
+                      />
+                    </div>
+                  </SwiperSlide>
+                </>
+              );
+            })}
           </Swiper>
         </div>
       </div>

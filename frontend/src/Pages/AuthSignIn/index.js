@@ -11,6 +11,12 @@ import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 import { postData } from "../../utils/api";
 
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
+
+const provider = new GoogleAuthProvider();
+const auth = getAuth(firebaseApp);
+
 const AuthSignIn = () => {
   const context = useContext(MyContext);
   const history = useNavigate();
@@ -123,6 +129,72 @@ const AuthSignIn = () => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      // Trigger Google sign-in popup
+      const result = await signInWithPopup(auth, provider);
+
+      // Extract credential and token
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+
+      // Extract user data
+      const user = result.user;
+      const fields = {
+        fullName: user.providerData[0].displayName,
+        email: user.providerData[0].email,
+        images: user.providerData[0].photoURL,
+      };
+
+      // Send user data to your backend
+      const response = await postData(`/api/user/authWithGoogle`, fields);
+
+      // Handle successful response
+      if (response.success === true) {
+        // Store token and user details in localStorage
+        localStorage.setItem("token", response.token);
+        const userData = {
+          userId: response.user?._id,
+          username: response.user?.username,
+          email: response.user?.email,
+          fullName: response.user?.fullName,
+          phone: response.user?.phone,
+          avatar: response.user?.avatar,
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        setAlertBox({
+          open: true,
+          closing: false,
+          status: "success",
+          message: response.message,
+        });
+        // Chuyển hướng sau khi đăng nhập thành công
+        setTimeout(() => {
+          context.setisHeaderFooterShow(true);
+          history("/");
+        }, 1000);
+      } else {
+        // Handle failure if needed (e.g., user not created)
+        console.error("Authentication failed:", response.message);
+        setAlertBox({
+          open: true,
+          closing: false,
+          status: "error",
+          message: response.message,
+        });
+      }
+    } catch (error) {
+      // Handle Firebase-specific errors
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      const email = error.customData.email;
+      const credential = GoogleAuthProvider.credentialFromError(error);
+
+      console.error(`Error during sign-in: ${errorCode} - ${errorMessage}`);
+      alert(`Authentication failed: ${errorMessage}`); // Optionally alert the user
+    }
+  };
+
   useEffect(() => {
     context.setisHeaderFooterShow(false);
   }, [context]);
@@ -216,7 +288,10 @@ const AuthSignIn = () => {
               <h6 className="mt-4 text-center font-weight-bold">
                 Hoặc tiếp tục với tài khoản xã hội
               </h6>
-              <Button className="mt-2 loginWithGoogle btn-cancel text-capitalize">
+              <Button
+                onClick={signInWithGoogle}
+                className="mt-2 loginWithGoogle btn-cancel text-capitalize"
+              >
                 <FcGoogle />
                 Đăng nhập bằng google
               </Button>

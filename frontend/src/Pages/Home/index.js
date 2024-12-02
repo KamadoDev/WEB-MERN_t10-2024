@@ -77,25 +77,7 @@ const Home = () => {
           <section className="homeProducts">
             <div className="container">
               <div className="row">
-                <div className="col-md-3">
-                  <div className="sticky">
-                    <div className="banner">
-                      <img
-                        className="cursor w-100"
-                        src="https://res.cloudinary.com/da26rdzwp/image/upload/v1726765914/1726765914505_1726335353673_New_Project_26.jpg"
-                        alt="cursor"
-                      />
-                    </div>
-                    <div className="banner">
-                      <img
-                        className="cursor w-100"
-                        src="https://res.cloudinary.com/da26rdzwp/image/upload/v1726335522/1726335520004_home-20-product-block-collection-3.webp"
-                        alt="cursor"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-9 productRow">
+                <div className="col-md-12 productRow">
                   {/* BESTSELLERS */}
                   <div className="d-flex align-items-center">
                     <div className="info">
@@ -191,23 +173,12 @@ const Home = () => {
                     )}
                   </div>
                   {/* NEW PRODUCTS END */}
-
-                  {/* Banner Ads */}
-                  <div className="mt-4 mb-5 bannerSec">
-                    <div className="bannerBot">
-                      <img src={banner4} alt="" className="w-100" />
-                    </div>
-                    <div className="bannerBot">
-                      <img src={banner3} alt="" className="w-100" />
-                    </div>
-                  </div>
-
-                  {/* Banner Ads end*/}
+                  
                 </div>
               </div>
             </div>
           </section>
-          <section className="newLetterSection mb-3 mt-3 d-flex align-items-center">
+          {/* <section className="newLetterSection mb-3 mt-3 d-flex align-items-center">
             <div className="container">
               <div className="row">
                 <div className="col-md-6">
@@ -235,7 +206,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </section> */}
         </div>
       )}
     </>

@@ -18,6 +18,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Alert, Collapse, IconButton } from "@mui/material";
 import Checkout from "./Pages/Checkout";
 import MyOrder from "./Pages/MyOrder";
+import SearchPage from "./Pages/SearchPage/SearchPage";
 
 const MyContext = createContext();
 function App() {
@@ -34,6 +35,12 @@ function App() {
   const [subCategoryData, setSubCategoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [cartData, setCartData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchData, setSearchData] = useState({
+    items: [],
+    totalPages: 1,
+    totalItems: 0,
+  });
   const [checkoutData, setCheckoutCartData] = useState({
     items: [],
     totalPrice: 0,
@@ -153,11 +160,18 @@ function App() {
     setAlertBox,
     checkoutData,
     setCheckoutCartData,
+    searchData,
+    setSearchData,
+    searchQuery,
+    setSearchQuery,
   };
   return (
     <MyContext.Provider value={values}>
       {isHeaderFooterShow === true && <Header />}
-      <div className="position-fixed" style={{ right: "20px", top: "230px", zIndex: "100" }}>
+      <div
+        className="position-fixed"
+        style={{ right: "20px", top: "230px", zIndex: "100" }}
+      >
         {alertBox.open === true && (
           <Collapse in={alertBox.open}>
             <Alert
@@ -193,6 +207,7 @@ function App() {
         <Route path="/signUp" exact={true} element={<AuthSignUp />} />
         <Route path="/checkout" exact={true} element={<Checkout />} />
         <Route path="/my-order" exact={true} element={<MyOrder />} />
+        <Route path="/search" exact={true} element={<SearchPage />} />
       </Routes>
       {isHeaderFooterShow === true && <Footer />}
       {isOpenProductModal.open === true && <ProductModal data={productData} />}

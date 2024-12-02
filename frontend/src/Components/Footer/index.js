@@ -19,7 +19,7 @@ const Footer = () => {
     <>
       <footer>
         <div className="container">
-          <div className="topInfo row">
+          {/* <div className="topInfo row">
             <div className="col d-flex align-items-center">
               <span>
                 <LuShirt />
@@ -44,9 +44,9 @@ const Footer = () => {
               </span>
               <span className="ml-2">Best price on the market</span>
             </div>
-          </div>
+          </div> */}
 
-          <div className="row mt-4 linksWrap">
+          {/* <div className="row mt-4 linksWrap">
             <div className="col">
               <h5>FRUIT & VEGETABLES</h5>
               <ul>
@@ -177,14 +177,14 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-          </div>
+          </div> */}
 
           <div className="copyright mt-4 pt-3 pb-3 d-flex">
-            <p className="mb-0">Copyright 2024. All rights reserved</p>
+            <p className="mb-0 text-white">Bản quyền 2024.</p>
             <ul className="list list-inline ml-auto mb-0">
               {socialMediaIcons.map((iconItem, index) => (
                 <li className="list-inline-item" key={index}>
-                  <Link to={iconItem.url} style={{ color: iconItem.color }}>
+                  <Link to={iconItem.url} style={{ color: iconItem.color, background: "#FFF" }}>
                     <iconItem.icon />
                   </Link>
                 </li>

@@ -15,6 +15,8 @@ import SubCategoryList from "./components/SubCategory/SubCategoryList";
 import Layout from "./Layouts/Layout";
 import VoucherCreate from "./components/Voucher/VoucherCreate";
 import VoucherList from "./components/Voucher/VoucherList";
+import SlideBannerCreate from "./components/SlideBanner/SlideBannerCreate";
+import UserList from "./components/User/UserList";
 const MyContext = createContext();
 
 const App = () => {
@@ -130,6 +132,14 @@ const App = () => {
             <Route path="/voucher" element={<Layout />}>
               <Route path="list" element={<VoucherList title="Danh sách" />} />
               <Route path="create" element={<VoucherCreate />} />
+            </Route>
+
+            <Route path="/slide" element={<Layout />}>
+              <Route path="home/create" element={<SlideBannerCreate title="Slide Banner Home" />} />
+            </Route>
+
+            <Route path="/user" element={<Layout />}>
+              <Route path="list" element={<UserList title="Danh sách" />} />
             </Route>
           </Routes>
         </div>

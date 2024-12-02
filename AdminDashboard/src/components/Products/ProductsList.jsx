@@ -282,7 +282,7 @@ const ProductsList = (props) => {
 
         <div className="flex items-center justify-end py-3 pr-3">
           <div>
-            Page <strong>{page}</strong> Show{" "}
+            Trang <strong>{page}</strong> Hiện{" "}
             <strong>
               {Array.isArray(dataProducts) && dataProducts.length > 0
                 ? dataProducts.length

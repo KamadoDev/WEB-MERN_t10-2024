@@ -105,15 +105,6 @@ const Listing = () => {
             <Sidebar filterData={handleFilterDataChange} />
 
             <div className="content_right">
-              <Link to="/" className="d-block">
-                <img
-                  className="w-100"
-                  src="https://klbtheme.com/bacola/wp-content/uploads/2021/08/bacola-banner-18.jpg"
-                  alt=""
-                  style={{ borderRadius: "8px" }}
-                />
-              </Link>
-
               <div className="showBy mt-3 mb-3 d-flex align-items-center">
                 <div className="d-flex align-items-center btnWrapper">
                   <Button

@@ -1,8 +1,51 @@
 const express = require("express");
 const { isValidPhone, verifyToken } = require("../helper/authHelpers");
 const { OrderModel } = require("../models/OrderModel");
-const { CartModel } = require("../models/CartModel");  // Import CartModel
+const { CartModel } = require("../models/CartModel"); // Import CartModel
 const router = express.Router();
+
+router.get("/:userId", verifyToken, async (req, res) => {
+  try {
+    // Lấy userId từ tham số trong URL
+    const { userId } = req.params;
+
+    // Kiểm tra xem người dùng đã xác thực có trùng với userId trong URL không (kiểm tra bảo mật tùy chọn)
+    if (req.user.id !== userId) {
+      return res.status(403).json({
+        status: false,
+        message: "Truy cập không được phép",
+        type: "error",
+      });
+    }
+
+    // Lấy danh sách đơn hàng của người dùng
+    const orders = await OrderModel.find({ userId }).sort({
+      createdAt: -1,
+    });
+
+    // Nếu không có đơn hàng hoặc giỏ hàng, trả về thông báo
+    if (!orders.length) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy đơn hàng của bạn",
+        type: "error",
+      });
+    }
+
+    // Trả về thông tin đơn hàng
+    res.status(200).json({
+      status: true,
+      message: "Danh sách đơn hàng của bạn",
+      type: "success",
+      orders,
+    });
+  } catch (error) {
+    console.error(error); // Ghi log lỗi để hỗ trợ debug
+    res
+      .status(500)
+      .json({ message: "Lỗi máy chủ nội bộ", error: error.message });
+  }
+});
 
 router.post("/create", verifyToken, async (req, res) => {
   try {

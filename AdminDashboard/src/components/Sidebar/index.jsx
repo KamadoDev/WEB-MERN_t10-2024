@@ -18,6 +18,9 @@ import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 import { MyContext } from "../../App";
 import { BiSolidDiscount } from "react-icons/bi";
+import { TbSlideshow } from "react-icons/tb";
+import { FaUsersGear } from "react-icons/fa6";
+
 const Sidebar = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [isToggleSubmenu, setToggleSubmenu] = useState(false);
@@ -47,6 +50,12 @@ const Sidebar = () => {
     { label: "Danh sách voucher", link: "/voucher/list" },
     { label: "Thêm voucher", link: "/voucher/create" },
   ];
+
+  const SlideBanner = [
+    { label: "Thêm Slide Home", link: "/slide/home/create" },
+  ];
+
+  const User = [{ label: "Danh sách", link: "/user/list" }];
 
   return (
     <>
@@ -120,6 +129,26 @@ const Sidebar = () => {
               submenus={Voucher}
               title="Voucher"
               iconNav={<BiSolidDiscount className="mr-1" />}
+            />
+
+            <NavTab
+              index={4}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={SlideBanner}
+              title="Slide Banner"
+              iconNav={<TbSlideshow className="mr-1" />}
+            />
+
+            <NavTab
+              index={5}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={User}
+              title="Người dùng"
+              iconNav={<FaUsersGear className="mr-1" />}
             />
 
             {/* <li>
