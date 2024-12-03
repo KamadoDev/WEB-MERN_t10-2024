@@ -14,7 +14,7 @@ const RelatedProducts = (props) => {
     <>
       <div className="d-flex align-items-center mt-2 mb-3 w-100">
         <div className="info w-75">
-          <h3 class="mb-0 hd text-uppercase">{props.title}</h3>
+          <h3 className="mb-0 hd text-uppercase">{props.title}</h3>
         </div>
       </div>
       <div className="product_row relatedProducts w-100 mt-0">

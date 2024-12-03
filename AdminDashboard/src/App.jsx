@@ -17,6 +17,8 @@ import VoucherCreate from "./components/Voucher/VoucherCreate";
 import VoucherList from "./components/Voucher/VoucherList";
 import SlideBannerCreate from "./components/SlideBanner/SlideBannerCreate";
 import UserList from "./components/User/UserList";
+import ProductDetail from "./components/Products/ProductDetail";
+import ContactList from "./components/Contact/ContactList";
 const MyContext = createContext();
 
 const App = () => {
@@ -111,10 +113,14 @@ const App = () => {
             <Route path="/products" element={<Layout />}>
               <Route path="list" element={<ProductsList title="Danh sách" />} />
               <Route path="create" element={<ProductCreate />} />
+              <Route path="view/:id" element={<ProductDetail />} />
             </Route>
             <Route path="/category" element={<Layout />}>
               <Route path="list" element={<CategoryList title="Danh sách" />} />
               <Route path="create" element={<CategoryCreate />} />
+            </Route>
+            <Route path="/contact" element={<Layout />}>
+              <Route path="list" element={<ContactList title="Danh sách" />} />
             </Route>
             <Route path="/subcategory" element={<Layout />}>
               <Route
@@ -135,7 +141,10 @@ const App = () => {
             </Route>
 
             <Route path="/slide" element={<Layout />}>
-              <Route path="home/create" element={<SlideBannerCreate title="Slide Banner Home" />} />
+              <Route
+                path="home/create"
+                element={<SlideBannerCreate title="Slide Banner Home" />}
+              />
             </Route>
 
             <Route path="/user" element={<Layout />}>

@@ -235,7 +235,7 @@ const ProductsList = (props) => {
                         style={{ backgroundColor: "#6dc4c4" }}
                       >
                         <Tooltip title="View">
-                          <Link to="/products/view">
+                          <Link to={`/products/view/${item.id}`}>
                             <IconButton>
                               <FaEye />
                             </IconButton>

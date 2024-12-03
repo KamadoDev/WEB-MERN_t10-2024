@@ -20,7 +20,7 @@ import { MyContext } from "../../App";
 import { BiSolidDiscount } from "react-icons/bi";
 import { TbSlideshow } from "react-icons/tb";
 import { FaUsersGear } from "react-icons/fa6";
-
+import { TiMessageTyping } from "react-icons/ti";
 const Sidebar = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [isToggleSubmenu, setToggleSubmenu] = useState(false);
@@ -56,6 +56,7 @@ const Sidebar = () => {
   ];
 
   const User = [{ label: "Danh sách", link: "/user/list" }];
+  const Contact = [{ label: "Danh sách", link: "/contact/list" }];
 
   return (
     <>
@@ -149,6 +150,16 @@ const Sidebar = () => {
               submenus={User}
               title="Người dùng"
               iconNav={<FaUsersGear className="mr-1" />}
+            />
+
+            <NavTab
+              index={6}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={Contact}
+              title="Liên hệ"
+              iconNav={<TiMessageTyping className="mr-1" />}
             />
 
             {/* <li>

@@ -154,10 +154,12 @@ const Header = () => {
                           vertical: "bottom",
                         }}
                       >
-                        <MenuItem onClick={handleClose}>
-                          <Avatar /> Tài khoản
-                        </MenuItem>
-                        <Divider />
+                        <Link to="/my-account">
+                          <MenuItem onClick={handleClose}>
+                            <Avatar /> Tài khoản
+                          </MenuItem>
+                          <Divider />
+                        </Link>
 
                         <Link to="/my-order">
                           <MenuItem onClick={handleClose}>
@@ -190,7 +192,9 @@ const Header = () => {
                   )}
                   <div className="ml-auto cartTab d-flex align-items-center">
                     <span className="price">
-                      {formatCurrency(parseFloat(context.cartData?.totalPrice) || 0)}
+                      {formatCurrency(
+                        parseFloat(context.cartData?.totalPrice) || 0
+                      )}
                     </span>
                     <div className=" position-relative ml-2">
                       <Link to="/cart">

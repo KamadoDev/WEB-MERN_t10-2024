@@ -19,6 +19,8 @@ import { Alert, Collapse, IconButton } from "@mui/material";
 import Checkout from "./Pages/Checkout";
 import MyOrder from "./Pages/MyOrder";
 import SearchPage from "./Pages/SearchPage/SearchPage";
+import MyAccount from "./Pages/MyAccount/MyAccount";
+import Contact from "./Pages/Contact/Contact";
 
 const MyContext = createContext();
 function App() {
@@ -207,7 +209,9 @@ function App() {
         <Route path="/signUp" exact={true} element={<AuthSignUp />} />
         <Route path="/checkout" exact={true} element={<Checkout />} />
         <Route path="/my-order" exact={true} element={<MyOrder />} />
+        <Route path="/my-account" exact={true} element={<MyAccount />} />
         <Route path="/search" exact={true} element={<SearchPage />} />
+        <Route path="/contact" exact={true} element={<Contact />} />
       </Routes>
       {isHeaderFooterShow === true && <Footer />}
       {isOpenProductModal.open === true && <ProductModal data={productData} />}

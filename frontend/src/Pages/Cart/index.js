@@ -5,7 +5,7 @@ import { GoTrash } from "react-icons/go";
 import { MdOutlineShoppingCartCheckout } from "react-icons/md";
 import { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../App";
-import { deleteData, getData, putData } from "../../utils/api";
+import { deleteData, getData, putData, putDataOne } from "../../utils/api";
 import Voucher from "../../Components/Voucher";
 
 const Cart = () => {
@@ -113,7 +113,7 @@ const Cart = () => {
         color: color,
       };
 
-      const response = await putData(`/api/cart/updateCart`, newCartFields, {
+      const response = await putDataOne(`/api/cart/updateCart`, newCartFields, {
         headers: {
           Authorization: `Bearer ${token}`, // Thay bằng token thật
         },

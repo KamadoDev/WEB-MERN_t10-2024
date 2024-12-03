@@ -16,6 +16,8 @@ const cloudinary = require("../cloudinaryConfig");
 const upload = require("../middlewares/multer");
 const fs = require("fs");
 const { ppid } = require("process");
+const bcrypt = require("bcrypt");
+
 require("dotenv").config();
 
 router.get("/users", verifyToken, checkAdminOrOwner, async (req, res) => {
@@ -461,6 +463,7 @@ router.put(
   checkAdminOrOwner,
   async (req, res) => {
     try {
+      console.log("Uploaded file:", req.file); // Kiểm tra xem có file không
       const { id } = req.params;
       const { username, email, phone, fullName, role, isActive, password } =
         req.body;
@@ -562,6 +565,81 @@ router.put(
       }
       console.error("Error updating user:", error);
       handleError(res, error);
+    }
+  }
+);
+
+// API thay đổi mật khẩu
+router.put(
+  "/change-password/:id",
+  verifyToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { currentPassword, newPassword } = req.body;
+      console.log(currentPassword, newPassword);
+      // Kiểm tra mật khẩu hiện tại và mật khẩu mới có tồn tại không
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Mật khẩu hiện tại là bắt buộc.",
+        });
+      }
+      if (!newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Mật khẩu mới là bắt buộc.",
+        });
+      }
+
+      // Tìm user trong DB
+      const user = await UserModel.findById(id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy người dùng.",
+        });
+      }
+
+      // Kiểm tra mật khẩu hiện tại có đúng không
+      const isCurrentPasswordCorrect = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+      if (!isCurrentPasswordCorrect) {
+        return res.status(400).json({
+          success: false,
+          message: "Mật khẩu hiện tại không đúng.",
+        });
+      }
+
+      // Kiểm tra mật khẩu mới hợp lệ
+      if (!isValidPassword(newPassword)) {
+        return res.status(400).json({
+          success: false,
+          message: "Mật khẩu mới không hợp lệ.",
+        });
+      }
+
+      // Mã hóa mật khẩu mới
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      // Cập nhật mật khẩu mới cho người dùng
+      user.password = hashedNewPassword;
+      await user.save();
+
+      // Trả về kết quả
+      res.status(200).json({
+        success: true,
+        message: "Mật khẩu đã được thay đổi thành công.",
+      });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi khi thay đổi mật khẩu.",
+      });
     }
   }
 );

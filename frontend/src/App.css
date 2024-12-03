@@ -126,7 +126,7 @@ a {
   z-index: 200;
 }
 
-.headerWrapper~section {
+.headerWrapper ~ section {
   margin-top: 210px !important;
 }
 
@@ -1895,4 +1895,60 @@ footer .copyright ul li a svg {
 .orderInfo thead {
   border-bottom: 1px solid #0000001a !important;
   border-top: 1px solid #0000001a !important;
+}
+
+/* My account page */
+.myAccountPage .myAccBox {
+  padding: 25px 0;
+  background-color: #f1f1f1;
+  border-radius: 10px;
+}
+
+.userImage {
+  height: 200px;
+  width: 200px;
+  border-radius: 50%;
+  display: block;
+  overflow: hidden;
+  border: 2px solid #007aff;
+  position: relative;
+}
+
+.userImage .overlay {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  pointer-events: none;
+  transition: all 0.3s ease-in-out;
+  opacity: 0;
+}
+
+.userImage .overlay input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: all;
+}
+
+.userImage:hover .overlay {
+  opacity: 1;
+}
+
+.userImage .overlay svg {
+  font-size: 45px;
+  color: #fff;
+}
+
+.userImage img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }

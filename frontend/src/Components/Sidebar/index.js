@@ -116,14 +116,6 @@ const Sidebar = ({ filterData }) => {
             </ul>
           </div>
         </div>
-        <br />
-        <Link to="/" className="d-block">
-          <img
-            src="https://res.cloudinary.com/dy2p0n2xc/image/upload/v1729058293/1729058292132_New_Project_34.jpg"
-            alt=""
-            className="w-100"
-          />
-        </Link>
       </div>
 
       {/* Sidebar END */}

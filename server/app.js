@@ -22,6 +22,7 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const slideBannerRoutes = require("./routes/slideBannerRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 app.use(`/api/user`, userRoutes);
 app.use(`/api/cart`, cartRoutes);
@@ -34,6 +35,7 @@ app.use(`/api/review`, reviewRoutes);
 app.use(`/api/order`, orderRoutes);
 app.use(`/api/slideBanner`, slideBannerRoutes);
 app.use(`/api/search`, searchRoutes);
+app.use(`/api/contact`, contactRoutes);
 
 //Database
 mongoose

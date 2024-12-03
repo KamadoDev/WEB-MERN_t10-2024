@@ -1,6 +1,4 @@
-import ProductZoom from "../../Components/ProductZoom";
 import Rating from "@mui/material/Rating";
-import QuantityBox from "../../Components/QuantityBox";
 import { Button } from "@mui/material";
 import { BsCartPlusFill } from "react-icons/bs";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -8,14 +6,20 @@ import { useCallback, useEffect, useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { MdOutlineCompareArrows } from "react-icons/md";
 import Tooltip from "@mui/material/Tooltip";
-import ProductItemSlide from "../../Components/ProductItemSlide";
-import RelatedProducts from "../../Components/RelatedProducts";
 import { deleteData, getData, postData } from "../../utils/api";
 import { MyContext } from "../../App";
 import { useContext } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+// import required modules
+import { Autoplay, Navigation } from "swiper/modules";
+import { IoMdHeartEmpty } from "react-icons/io";
 
-const ProductDetails = () => {
+const ProductDetail = () => {
   const { id } = useParams();
   const history = useNavigate();
   const [activeSize, setActiveSize] = useState(null);
@@ -102,6 +106,7 @@ const ProductDetails = () => {
         setLoadingCart(false);
       }
     } catch (error) {
+      console.error("Product detail", error);
       setLoadingCart(false);
     } finally {
       setTimeout(() => {
@@ -288,13 +293,51 @@ const ProductDetails = () => {
           <div className="container">
             <div className="row">
               <div className="col-md-4 pl-5">
-                <ProductZoom
+                {/* <ProductZoom
                   images={product?.product?.images}
                   discount={product?.product?.discount}
-                />
+                /> */}
+                <Swiper
+                  slidesPerView={1}
+                  spaceBetween={10}
+                  navigation={true}
+                  autoplay={{ delay: 2500, disableOnInteraction: false }}
+                  modules={[Autoplay, Navigation]}
+                  className="mySwiper"
+                >
+                  {product?.product?.images?.map((slide, index) => {
+                    return (
+                      <>
+                        <SwiperSlide key={index}>
+                          <img
+                            style={{ height: "369px", borderRadius: "10px" }}
+                            src={slide.url}
+                          />
+                        </SwiperSlide>
+                      </>
+                    );
+                  })}
+                </Swiper>
               </div>
               <div className="col-md-8 pl-5 pr-5">
                 <h2 className="hd text-capitalize">{product?.product?.name}</h2>
+                <div className="d-flex mt-5 align-items-center productSize">
+                  <span>Tags: </span>
+                  <ul className="list list-inline mb-0 pl-4">
+                    {product?.product?.tags?.map((item, index) => (
+                      <li className="list-inline-item" key={index}>
+                        <Link
+                          onClick={() => isActive("tag", index, item)}
+                          className={`tag ${
+                            activeTag === index ? "active" : ""
+                          }`}
+                        >
+                          {item}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <ul className="list list-inline mb-0 d-flex align-items-center">
                   <li className="list-inline-item ">
                     <div className="d-flex align-items-center ">
@@ -402,33 +445,6 @@ const ProductDetails = () => {
                       </li>
                     ))}
                   </ul>
-                </div>
-
-                <div className="d-flex align-items-center mt-3">
-                  <QuantityBox onQuantityChange={onQuantityChange} />
-                  <Button
-                    onClick={() => addCart(id)}
-                    className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round"
-                  >
-                    {loadingCart === true ? (
-                      <CircularProgress className="" />
-                    ) : (
-                      <>
-                        <BsCartPlusFill />
-                        &nbsp; Thêm vào giỏ hàng
-                      </>
-                    )}
-                  </Button>
-                  <Tooltip title="Add to Wishlist" placement="top">
-                    <Button className="btn-blue btn-lg btn-circle ml-3">
-                      <FaRegHeart />
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Compare" placement="top">
-                    <Button className="btn-blue btn-lg btn-circle ml-3">
-                      <MdOutlineCompareArrows />
-                    </Button>
-                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -613,32 +629,84 @@ const ProductDetails = () => {
                 )}
               </div>
             </div>
-            <div className="d-flex mt-5 align-items-center productSize">
-              <span>Tags: </span>
-              <ul className="list list-inline mb-0 pl-4">
-                {product?.product?.tags?.map((item, index) => (
-                  <li className="list-inline-item" key={index}>
-                    <Link
-                      onClick={() => isActive("tag", index, item)}
-                      className={`tag ${activeTag === index ? "active" : ""}`}
-                    >
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+
+            <div className="d-flex align-items-center mt-5 mb-3 w-100">
+              <div className="info w-75">
+                <h3 className="mb-0 hd text-uppercase">Sản phẩm liên quan</h3>
+              </div>
             </div>
+            <div className="product_row relatedProducts w-100 mt-0">
+              <Swiper
+                slidesPerView={5}
+                spaceBetween={5}
+                navigation={true}
+                autoplay={{ delay: 2500, disableOnInteraction: false }}
+                modules={[Autoplay, Navigation]}
+                className="mySwiper"
+              >
+                {relatedProducts?.length !== 0 &&
+                  relatedProducts?.map((item, index) => {
+                    return (
+                      <SwiperSlide key={index}>
+                        <div className={`item productItem `}>
+                          <div className="imgWrapper" style={{ width: "100%" }}>
+                            <Link to={`/products/view/${item?.id}`}>
+                              <img
+                                className="w-100"
+                                src={item?.images[0].url}
+                                alt={item?.name?.substr(0, 19) + "..."}
+                                style={{ height: "250px" }}
+                              />
+                            </Link>
 
-            {relatedProducts?.length !== 0 ? (
-              <RelatedProducts
-                title="Sản phẩm liên quan"
-                data={relatedProducts}
-              />
-            ) : (
-              <p>Không có sản phẩm liên quan</p>
-            )}
+                            {item?.discount > 0 && (
+                              <span className="badge badge-danger">
+                                Giảm {item?.discount}%
+                              </span>
+                            )}
+                          </div>
 
-            {/* <RelatedProducts title="RECENTLY VIEW PRODUCTS" /> */}
+                          <div className="infoProductItem">
+                            <Link to={`/products/view/${item?._id}`}>
+                              <h4>{item?.name?.substr(0, 19) + "..."}</h4>
+                            </Link>
+                            <span className="text-success d-block">
+                              {item?.productInStock > 0
+                                ? "In Stock"
+                                : "Out of Stock"}
+                            </span>
+                            <Rating
+                              className="mt-2 mb-2"
+                              name="read-only"
+                              value={item?.rating}
+                              readOnly
+                              size="small"
+                              precision={0.5}
+                            />
+
+                            <div className="d-flex">
+                              {item?.old_price < item?.price ? (
+                                <span className="newPrice text-danger ml-2">
+                                  {formatCurrency(item?.price)}
+                                </span>
+                              ) : (
+                                <>
+                                  <span className="oldPrice">
+                                    {formatCurrency(item?.old_price)}
+                                  </span>
+                                  <span className="newPrice text-danger ml-2">
+                                    {formatCurrency(item?.price)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </SwiperSlide>
+                    );
+                  })}
+              </Swiper>
+            </div>
           </div>
         )}
       </section>
@@ -646,4 +714,4 @@ const ProductDetails = () => {
   );
 };
 
-export default ProductDetails;
+export default ProductDetail;
