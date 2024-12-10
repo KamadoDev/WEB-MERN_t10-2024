@@ -15,10 +15,17 @@ const Contact = () => {
     setLoading(true);
     const userId = context.userData.userId;
     try {
-      const response = await postData("/api/contact/create", {
+      const newContactFields = {
+        userId,
         emailOrPhone,
         message,
-        userId,
+      };
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const response = await postData("/api/contact/create", newContactFields, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thay bằng token thật
+        },
       });
 
       if (response.success) {
@@ -42,7 +49,7 @@ const Contact = () => {
       setLoading(false);
       setTimeout(() => {
         context.setAlertBox({
-          open: true,
+          open: false,
           type: "",
           message: "",
         });
@@ -88,6 +95,7 @@ const Contact = () => {
             </div>
             <div className="col-md-6">
               <iframe
+                title="Liên hệ với chúng tôi"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d57475.673705389454!2d106.76571544999999!3d10.826922999999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752701a34a5d5f%3A0x30056b2fdf668565!2sHo%20Chi%20Minh%20City%20College%20of%20Industry%20and%20Trade!5e1!3m2!1sen!2s!4v1733249166659!5m2!1sen!2s"
                 width="600"
                 height="450"

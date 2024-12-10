@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { getData } from "../../utils/api";
+import { getData, putDataOne } from "../../utils/api";
 import { MyContext } from "../../App";
 import { Link } from "react-router-dom";
 import { Rating } from "@mui/material";
@@ -58,6 +58,56 @@ const MyOrder = () => {
     }
   };
 
+  const cancelOrder = async (id) => {
+    try {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const newData = {
+        status: "Cancelled",
+      };
+      const response = await putDataOne(`/api/order/${id}`, newData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.success) {
+        console.log("Load my order", response.orders);
+        context.setAlertBox({
+          open: true,
+          message: response.message, // Lấy message từ response
+          type: response.type || "success",
+        });
+        fetchData();
+        setLoading(false);
+      } else {
+        console.log(response.message);
+        context.setAlertBox({
+          open: true,
+          message: response.message, // Lấy message từ response khi lỗi
+          type: response.type || "error",
+        });
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log("Lỗi khi gửi dữ liệu: ", error.message);
+      context.setAlertBox({
+        open: true,
+        message: "Đã xảy ra lỗi khi đặt hàng", // Thông báo lỗi khi không gọi được API
+        type: "error",
+      });
+      setLoading(false);
+    } finally {
+      setTimeout(() => {
+        context.setAlertBox({
+          open: false,
+          message: "",
+          type: "",
+        });
+        setLoading(false);
+      }, 5000);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -68,6 +118,41 @@ const MyOrder = () => {
       currency: "VND",
     }).format(value);
   };
+
+  function getStatusDetails(status) {
+    switch (status) {
+      case "Pending":
+        return {
+          className: "badge-warning",
+          label: "Đang xử lý",
+        };
+      case "Packed":
+        return {
+          className: "badge-info",
+          label: "Đã đóng hàng",
+        };
+      case "In Transit":
+        return {
+          className: "badge-primary",
+          label: "Đang vận chuyển",
+        };
+      case "Completed":
+        return {
+          className: "badge-success",
+          label: "Hoàn thành",
+        };
+      case "Cancelled":
+        return {
+          className: "badge-danger",
+          label: "Đã hủy",
+        };
+      default:
+        return {
+          className: "badge-secondary",
+          label: "Không xác định",
+        };
+    }
+  }
 
   return (
     <section className="section cartPage">
@@ -82,9 +167,12 @@ const MyOrder = () => {
               orders?.map((item, index) => {
                 return (
                   <div key={index}>
-                    <h5 className="card-title my-0"><strong>#Mã đơn hàng:</strong> {item.id}</h5>
+                    <h5 className="card-title my-0">
+                      <strong>#Mã đơn hàng:</strong> {item.id}
+                    </h5>
                     <p className="card-text m-0">
-                      Ngày đặt hàng: {item.createdAt}
+                      Ngày đặt hàng:{" "}
+                      {new Date(item.createdAt).toLocaleDateString("vi-VN")}
                     </p>
                     <p className="card-text mb-2">
                       Địa chỉ giao hàng: {item.address.detail},{" "}
@@ -155,11 +243,27 @@ const MyOrder = () => {
                             <br />
                             <strong>
                               Trạng thái đơn hàng:{" "}
-                              <span className="badge badge-success">
-                                {item.status}
-                              </span>
+                              {(() => {
+                                const { className, label } = getStatusDetails(
+                                  item.status
+                                );
+                                return (
+                                  <span className={`badge ${className}`}>
+                                    {label}
+                                  </span>
+                                );
+                              })()}
                             </strong>
+                            <br />
                           </p>
+                          {item.status === "Pending" && (
+                            <button
+                              className="btn btn-danger btn-block"
+                              onClick={() => cancelOrder(item.id)}
+                            >
+                              Hủy đơn
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

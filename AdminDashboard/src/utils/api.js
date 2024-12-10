@@ -64,6 +64,27 @@ export const putData = async (url, formData) => {
   }
 };
 
+export const putDataJson = async (url, json) => {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
+  try {
+    const response = await axios.put(`/api${url}`, json, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Thêm token vào header
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating data:", error.message);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      return error.response.data;
+    }
+    return null;
+  }
+};
+
 export const deleteData = async (url, id) => {
   const token =
     localStorage.getItem("token") || sessionStorage.getItem("token");

@@ -180,7 +180,7 @@ const ProductsList = (props) => {
                   </th>
                   <td className="align-middle text-left">
                     <div className="info">
-                      <Link to={`/products/detail/${item._id}`}>
+                      <Link to={`/products/view/${item._id}`}>
                         <h6>{item.name.substr(0, 15) + "..."}</h6>
                       </Link>
                     </div>
@@ -202,12 +202,12 @@ const ProductsList = (props) => {
                   <td className="align-middle text-center">
                     {item.sub_category?.name || "N/A"}
                   </td>
-                  <td className="align-middle w-[15%] text-center">
+                  <td className="align-middle text-center">
                     <span className="badge badge-danger p-2 text-white">
                       {item.brand}
                     </span>
                   </td>
-                  <td className="align-middle w-[5%] text-center">
+                  <td className="align-middle text-center">
                     <Stack spacing={1}>
                       <Rating
                         name="simple-controlled"
@@ -218,7 +218,7 @@ const ProductsList = (props) => {
                       />
                     </Stack>
                   </td>
-                  <td className="align-middle w-[15%] text-center">
+                  <td className="align-middle text-center">
                     <div>
                       <del className="old">
                         {formatCurrency(item.old_price || 0)}

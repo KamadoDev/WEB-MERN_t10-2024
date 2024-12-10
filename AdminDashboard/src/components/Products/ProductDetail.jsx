@@ -1,11 +1,7 @@
 import Rating from "@mui/material/Rating";
 import { Button } from "@mui/material";
-import { BsCartPlusFill } from "react-icons/bs";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { FaRegHeart } from "react-icons/fa";
-import { MdOutlineCompareArrows } from "react-icons/md";
-import Tooltip from "@mui/material/Tooltip";
 import { deleteData, getData, postData } from "../../utils/api";
 import { MyContext } from "../../App";
 import { useContext } from "react";
@@ -17,11 +13,9 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 // import required modules
 import { Autoplay, Navigation } from "swiper/modules";
-import { IoMdHeartEmpty } from "react-icons/io";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const history = useNavigate();
   const [activeSize, setActiveSize] = useState(null);
   const [activeColor, setActiveColor] = useState(null);
   const [activeTag, setActiveTag] = useState(null);
@@ -61,64 +55,6 @@ const ProductDetail = () => {
     }
   };
 
-  const onQuantityChange = (value) => {
-    console.log("quantity productDetail", value);
-    setQuantityVal(value);
-  };
-
-  const [loadingCart, setLoadingCart] = useState(false);
-
-  const addCart = async (id) => {
-    setLoadingCart(true);
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
-    const newCartFields = {
-      userId: context.userData.userId,
-      productId: id,
-      quantity: quantityVal,
-      size: selectedSize,
-      color: selectedColor,
-    };
-
-    try {
-      // Gửi dữ liệu lên server
-      const response = await postData(`/api/cart/addCart`, newCartFields, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Thay bằng token thật
-        },
-      });
-      if (response.status === true) {
-        context.setAlertBox({
-          open: true,
-          message: response.message,
-          type: response.type || "success",
-        });
-        setTimeout(() => {
-          history("/cart");
-        }, 1000);
-        setLoadingCart(false);
-      } else {
-        context.setAlertBox({
-          open: true,
-          message: response.message,
-          type: response.type || "error",
-        });
-        setLoadingCart(false);
-      }
-    } catch (error) {
-      console.error("Product detail", error);
-      setLoadingCart(false);
-    } finally {
-      setTimeout(() => {
-        context.setAlertBox({
-          open: false,
-          message: "",
-          type: "",
-        });
-        setLoadingCart(false);
-      }, 2000);
-    }
-  };
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -543,7 +479,7 @@ const ProductDetail = () => {
                               key={review._id}
                               className="reviewBox mb-4 border-bottom"
                             >
-                              <div className="info">
+                              <div className="infoProductItem">
                                 <div className="d-flex align-items-center w-100">
                                   <h5>
                                     {review.userId?.fullName || "Khách hàng"}

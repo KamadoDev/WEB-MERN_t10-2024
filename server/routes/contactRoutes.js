@@ -1,5 +1,6 @@
 const express = require("express");
 const { ContactModel } = require("../models/ContactModel");
+const { verifyToken } = require("../helper/authHelpers");
 const router = express.Router();
 
 // API GET để lấy thông tin liên hệ với phân trang
@@ -69,7 +70,7 @@ router.get("/", async (req, res) => {
 });
 
 // API nhận thông tin liên hệ và lưu vào MongoDB
-router.post("/create", async (req, res) => {
+router.post("/create", verifyToken, async (req, res) => {
   const { emailOrPhone, message, userId } = req.body; // Lấy userId từ body
 
   // Kiểm tra xem tất cả các trường đã có dữ liệu hay chưa

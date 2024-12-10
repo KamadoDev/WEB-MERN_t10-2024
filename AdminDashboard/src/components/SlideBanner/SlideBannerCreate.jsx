@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import { FcAddImage } from "react-icons/fc";
 import { IoIosClose, IoIosSave } from "react-icons/io";
-import { Link } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import Chip from "@mui/material/Chip";
 import { useContext, useEffect, useState } from "react";

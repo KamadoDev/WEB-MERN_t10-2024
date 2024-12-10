@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import Logo from "../../assets/images/SpaceX-Logo.png";
 import Button from "@mui/material/Button";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { RiProductHuntLine } from "react-icons/ri";
@@ -10,7 +9,7 @@ import { MdOutlineCategory } from "react-icons/md";
 // import { IoSettingsOutline } from "react-icons/io5";
 // import { FiUsers } from "react-icons/fi";
 import { FiUser } from "react-icons/fi";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import NavTab from "./NavTab";
 import Alert from "@mui/material/Alert";
 import IconButton from "@mui/material/IconButton";
@@ -21,6 +20,10 @@ import { BiSolidDiscount } from "react-icons/bi";
 import { TbSlideshow } from "react-icons/tb";
 import { FaUsersGear } from "react-icons/fa6";
 import { TiMessageTyping } from "react-icons/ti";
+import { FaBabyCarriage } from "react-icons/fa";
+import { FaRegImage } from "react-icons/fa";
+import { getData } from "../../utils/api";
+
 const Sidebar = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [isToggleSubmenu, setToggleSubmenu] = useState(false);
@@ -35,6 +38,24 @@ const Sidebar = () => {
     }
   };
 
+  const [logoWebData, setLogoWeb] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getData("/api/logoWeb/");
+        if (res && res.success) {
+          setLogoWeb(res.data); // Lưu dữ liệu logo vào state
+        } else {
+          console.log("No logo found");
+        }
+      } catch (error) {
+        console.error("Error fetching logo data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const productsSubmenu = [
     { label: "Danh sách sản phẩm", link: "/products/list" },
     { label: "Thêm sản phẩm", link: "/products/create" },
@@ -45,6 +66,8 @@ const Sidebar = () => {
     { label: "Danh mục phụ", link: "/subcategory/list" },
     { label: "Thêm danh mục phụ", link: "/subcategory/create" },
   ];
+
+  const logoWeb = [{ label: "Logo web", link: "/logoweb/list" }];
 
   const Voucher = [
     { label: "Danh sách voucher", link: "/voucher/list" },
@@ -57,6 +80,8 @@ const Sidebar = () => {
 
   const User = [{ label: "Danh sách", link: "/user/list" }];
   const Contact = [{ label: "Danh sách", link: "/contact/list" }];
+
+  const Order = [{ label: "Danh sách đơn hàng", link: "/order/list" }];
 
   return (
     <>
@@ -82,11 +107,16 @@ const Sidebar = () => {
             {context.Message}
           </Alert>
         </Collapse>
-        <Link to={""}>
-          <div className="logoWrapper flex items-center">
-            <img className="px-4 mt-2" src={Logo} alt="logo" />
+
+        {logoWebData?.images?.length > 0 && logoWebData.images[0].url && (
+          <div className="logoWrapper m-3 flex items-center">
+            <img
+              src={logoWebData?.images[0].url}
+              alt={logoWebData?.type}
+              style={{ width: "100%", height: "100%", borderRadius: "5px", objectFit: "cover" }}
+            />
           </div>
-        </Link>
+        )}
 
         <div className="sidebarTabs px-2 mt-3">
           <ul className="flex gap-2 flex-col">
@@ -160,6 +190,26 @@ const Sidebar = () => {
               submenus={Contact}
               title="Liên hệ"
               iconNav={<TiMessageTyping className="mr-1" />}
+            />
+
+            <NavTab
+              index={7}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={Order}
+              title="Đơn hàng"
+              iconNav={<FaBabyCarriage className="mr-1" />}
+            />
+
+            <NavTab
+              index={8}
+              activeTab={activeTab}
+              isToggleSubmenu={isToggleSubmenu}
+              setActiveTab={handleTabClick}
+              submenus={logoWeb}
+              title="Logo Web"
+              iconNav={<FaRegImage className="mr-1" />}
             />
 
             {/* <li>

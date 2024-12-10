@@ -19,6 +19,8 @@ import SlideBannerCreate from "./components/SlideBanner/SlideBannerCreate";
 import UserList from "./components/User/UserList";
 import ProductDetail from "./components/Products/ProductDetail";
 import ContactList from "./components/Contact/ContactList";
+import OrderList from "./components/Order/OrderList";
+import LogoWebList from "./components/LogoWeb/LogoWebList";
 const MyContext = createContext();
 
 const App = () => {
@@ -35,6 +37,9 @@ const App = () => {
     avatar: "",
   });
   const navigate = useNavigate();
+
+  
+
   useEffect(() => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -119,6 +124,9 @@ const App = () => {
               <Route path="list" element={<CategoryList title="Danh sách" />} />
               <Route path="create" element={<CategoryCreate />} />
             </Route>
+            <Route path="/logoweb" element={<Layout />}>
+              <Route path="list" element={<LogoWebList title="Danh sách" />} />
+            </Route>
             <Route path="/contact" element={<Layout />}>
               <Route path="list" element={<ContactList title="Danh sách" />} />
             </Route>
@@ -149,6 +157,10 @@ const App = () => {
 
             <Route path="/user" element={<Layout />}>
               <Route path="list" element={<UserList title="Danh sách" />} />
+            </Route>
+
+            <Route path="/order" element={<Layout />}>
+              <Route path="list" element={<OrderList title="Danh sách" />} />
             </Route>
           </Routes>
         </div>

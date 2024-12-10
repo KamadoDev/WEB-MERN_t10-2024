@@ -23,6 +23,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const slideBannerRoutes = require("./routes/slideBannerRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const contactRoutes = require("./routes/contactRoutes");
+const logoWebRoutes = require("./routes/logoWebRoutes");
 
 app.use(`/api/user`, userRoutes);
 app.use(`/api/cart`, cartRoutes);
@@ -36,6 +37,7 @@ app.use(`/api/order`, orderRoutes);
 app.use(`/api/slideBanner`, slideBannerRoutes);
 app.use(`/api/search`, searchRoutes);
 app.use(`/api/contact`, contactRoutes);
+app.use(`/api/logoWeb`, logoWebRoutes);
 
 //Database
 mongoose

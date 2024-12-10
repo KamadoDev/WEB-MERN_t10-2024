@@ -1,9 +1,6 @@
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-// import { FiEye } from "react-icons/fi";
-import { RiDeleteBin6Line } from "react-icons/ri";
 import PropTypes from "prop-types";
 import { Button } from "@mui/material";
+import { PiExport } from "react-icons/pi";
 import SearchBox from "../SearchBox";
 import Pagination from "@mui/material/Pagination";
 import { useContext, useEffect, useState } from "react";
@@ -11,42 +8,39 @@ import { deleteData, getData } from "../../utils/api";
 import { MyContext } from "../../App";
 import Drawer from "@mui/material/Drawer";
 import LinearProgress from "@mui/material/LinearProgress";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import OrderEdit from "./OrderEdit";
 
-const ContactList = (props) => {
-  const [open, setOpen] = useState(false);
-  const [messageCustom, setMessageCustom] = useState("");
-
-  const handleClickOpen = (message) => {
-    setMessageCustom(message);
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+const OrderList = (props) => {
   const { title, isSharedPage } = props;
   const [dataCat, setDataCat] = useState([]);
   const context = useContext(MyContext);
+  const [id, setId] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0); // Tổng số trang
+  // Hàm Edit danh mục
+  const handleEditOrder = (id) => {
+    // Tùy chỉnh code để chỉnh sửa danh mục tại đây
+    if (id) {
+      console.log("Edit order:", id);
+      context.setOpenDraw(true);
+      setId(id);
+    }
+  };
 
   // Hàm Xóa danh mục
-  const handleDeleteContact = async (id) => {
+  const handleDeleteOrder = async (id) => {
     setLoading(true);
     window.scrollTo(0, 0);
     try {
-      const response = await deleteData("/api/contact/", id);
+      const response = await deleteData("/api/order/", id);
       console.log(response);
       if (response.success === true) {
         context.setMessage(response.message);
         context.setTypeMessage(response.type || "success");
         context.setOpen(true);
+        fetchData(); // Làm mới dữ liệu khi xóa
       } else {
         context.setMessage(response.message || response.error.message);
         context.setTypeMessage(response.type || "error");
@@ -56,7 +50,6 @@ const ContactList = (props) => {
       console.error("Error:", error.message);
       context.setOpen(true);
     } finally {
-      fetchData(); // Làm mới dữ liệu khi xóa
       setLoading(false);
     }
   };
@@ -64,11 +57,11 @@ const ContactList = (props) => {
   // Hàm lấy dữ liệu từ API
   const fetchData = async (currentPage = 1) => {
     try {
-      const res = await getData(`/api/contact?page=${currentPage}`);
+      const res = await getData(`/api/order?page=${currentPage}`);
       if (res) {
-        setDataCat(res.contacts);
+        setDataCat(res.orders);
         setTotalPages(res.totalPages);
-        console.log(res);
+        console.log("Đơn hàng", res);
       } else {
         setDataCat([]);
         setTotalPages(null);
@@ -92,6 +85,41 @@ const ContactList = (props) => {
     }
   }, [context.openDraw, page, context]);
 
+  function getStatusDetails(status) {
+    switch (status) {
+      case "Pending":
+        return {
+          className: "badge-warning",
+          label: "Đang xử lý",
+        };
+      case "Packed":
+        return {
+          className: "badge-info",
+          label: "Đã đóng hàng",
+        };
+      case "In Transit":
+        return {
+          className: "badge-primary",
+          label: "Đang vận chuyển",
+        };
+      case "Completed":
+        return {
+          className: "badge-success",
+          label: "Hoàn thành",
+        };
+      case "Cancelled":
+        return {
+          className: "badge-danger",
+          label: "Đã hủy",
+        };
+      default:
+        return {
+          className: "badge-secondary",
+          label: "Không xác định",
+        };
+    }
+  }
+
   return (
     <>
       <Drawer
@@ -99,26 +127,18 @@ const ContactList = (props) => {
         anchor="right"
         onClose={() => context.setOpenDraw(false)}
       >
+        {<OrderEdit orderID={String(id)} />}
       </Drawer>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Lời nhắn của khách hàng"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {messageCustom}
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
       {!isSharedPage && (
         <div className="card shadow my-4 border-0 flex-center p-3">
           <div className="flex items-center justify-between">
-            <h1 className="font-weight-bold mb-0">Liên hệ</h1>
+            <h1 className="font-weight-bold mb-0">Đơn hàng</h1>
+            <div className="ml-auto flex items-center gap-3">
+              <Button className="btn-sm btn-border">
+                <PiExport />
+                Export to Excel
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -136,70 +156,77 @@ const ContactList = (props) => {
           <thead className="table-dark">
             <tr className="capitalize">
               <th scope="col">#</th>
-              <th scope="col">_ID</th>
-              <th scope="col">Tên khách hàng</th>
-              <th scope="col">Số điện thoại</th>
-              <th scope="col">Email</th>
-              <th scope="col">Lời nhắn</th>
+              <th scope="col">Order ID</th>
+              <th scope="col">Ngày đặt</th>
+              <th scope="col">Địa chỉ giao</th>
+              <th scope="col">Điện thoại</th>
+              <th scope="col">Tổng tiền</th>
+              <th scope="col">Thanh toán</th>
+              <th scope="col">Trạng thái</th>
+              <th scope="col">Số lượng</th>
               <th scope="col">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {Array.isArray(dataCat) && dataCat.length > 0 ? (
-              dataCat.map((item, index) => (
-                <tr key={index}>
+              dataCat.map((order, index) => (
+                <tr key={order._id}>
                   <th className="align-middle" scope="row">
                     {index + 1}
                   </th>
-                  <td className="align-middle w-[23%]">{item._id}</td>
-                  <td className="align-middle w-[15%]">
-                    <div className="info">
-                      <h6>{item.userId?.fullName}</h6>
-                    </div>
+                  <td className="align-middle">{order._id}</td>
+                  <td className="align-middle">
+                    {new Date(order.orderDate).toLocaleDateString("vi-VN")}
                   </td>
-                  <td className="align-middle w-[15%]">
-                    <div className="info">
-                      <h6>{item.userId?.phone}</h6>
-                    </div>
+                  <td className="align-middle">
+                    {`${order.address.detail}, ${order.address.ward}, ${order.address.district}, ${order.address.province}`}
                   </td>
-                  <td className="align-middle w-[15%]">
-                    <div className="info">
-                      <h6>{item.userId?.email}</h6>
-                    </div>
+                  <td className="align-middle">{order.address.phone}</td>
+                  <td className="align-middle">
+                    {order.totalPrice.toLocaleString("vi-VN")} VND
                   </td>
-                  <td className="align-middle w-[15%]">
-                    <div className="info">
-                      <Button
-                        variant="outlined"
-                        onClick={() => handleClickOpen(item.message)} // Truyền message vào
-                      >
-                        Nội dung
-                      </Button>
-                      {/* <h6>{item.message}</h6> */}
-                    </div>
+                  <td className="align-middle">{order.paymentMethod}</td>
+                  <td className="align-middle">
+                    {(() => {
+                      const { className, label } = getStatusDetails(
+                        order.status
+                      );
+                      return (
+                        <span className={`badge ${className}`}>{label}</span>
+                      );
+                    })()}
+                  </td>
+
+                  <td className="align-middle">
+                    {order.items.reduce(
+                      (total, item) => total + item.quantity,
+                      0
+                    )}
                   </td>
                   <td className="align-middle">
                     <div className="flex gap-3">
-                      <div
-                        className="btnActions"
-                        style={{ backgroundColor: "#ff6179" }}
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleEditOrder(order._id)}
                       >
-                        <Tooltip title="Delete">
-                          <IconButton
-                            onClick={() => handleDeleteContact(item.id)}
-                          >
-                            <RiDeleteBin6Line />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
+                        Xem
+                      </button>
+                      {order.status === "Cancelled" && (
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDeleteOrder(order._id)}
+                        >
+                          Xóa
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
-                  No data found
+                <td colSpan="10" className="text-center">
+                  Không có dữ liệu
                 </td>
               </tr>
             )}
@@ -229,9 +256,9 @@ const ContactList = (props) => {
   );
 };
 
-ContactList.propTypes = {
+OrderList.propTypes = {
   title: PropTypes.node.isRequired,
   isSharedPage: PropTypes.bool,
 };
 
-export default ContactList;
+export default OrderList;

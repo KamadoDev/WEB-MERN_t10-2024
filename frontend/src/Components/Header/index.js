@@ -18,6 +18,9 @@ import Logout from "@mui/icons-material/Logout";
 import * as React from "react";
 import { FaHeart } from "react-icons/fa";
 import { IoMdLogOut } from "react-icons/io";
+import { getData } from "../../utils/api";
+import { useEffect } from "react";
+import { useState } from "react";
 
 const Header = () => {
   const context = useContext(MyContext);
@@ -45,6 +48,24 @@ const Header = () => {
       navigate("/signIn");
     }, 1000);
   };
+
+  const [logoWebData, setLogoWeb] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getData("/api/logoWeb/");
+        if (res && res.success) {
+          setLogoWeb(res.data); // Lưu dữ liệu logo vào state
+        } else {
+          console.log("No logo found");
+        }
+      } catch (error) {
+        console.error("Error fetching logo data:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -84,11 +105,16 @@ const Header = () => {
         <header className="header">
           <div className="container">
             <div className="row">
-              <div className="logoWrapper d-flex align-items-center col-sm-2">
-                <Link to="/">
-                  <img src={Logo} alt="logo" />
-                </Link>
-              </div>
+              {logoWebData?.images?.length > 0 && logoWebData.images[0].url && (
+                <div className="logoWrapper d-flex align-items-center col-sm-2">
+                  <Link to="/">
+                    <img
+                      src={logoWebData?.images[0].url}
+                      alt={logoWebData?.type}
+                    />
+                  </Link>
+                </div>
+              )}
 
               <div className="col-sm-10 d-flex align-items-center part2">
                 {/* {context.countryList.lenght !== 0 && <CountryDropdown />} */}
