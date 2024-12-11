@@ -3,11 +3,9 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import { IoMailOutline } from "react-icons/io5";
 import UserImage from "../UserImage";
 
-import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import Divider from "@mui/material/Divider";
 import Logout from "@mui/icons-material/Logout";
 import { useContext, useState } from "react";
 import SearchBox from "../SearchBox";
@@ -105,13 +103,6 @@ const Header = () => {
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
-                <MenuItem onClick={handleClose}>
-                  <Avatar /> Profile
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                  <Avatar /> My account
-                </MenuItem>
-                <Divider />
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
                     <Logout fontSize="small" />

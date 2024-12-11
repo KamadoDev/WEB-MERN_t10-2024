@@ -7,6 +7,7 @@ const UserImage = (props) => {
         <img
           src={props.avatar}
           alt="myacc"
+          className="img-fluid"
         />
       </span>
     </>

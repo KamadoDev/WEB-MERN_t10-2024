@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import PropTypes from "prop-types";
 
 const DashboardBox = (props) => {

@@ -17,6 +17,7 @@ const upload = require("../middlewares/multer");
 const fs = require("fs");
 const { ppid } = require("process");
 const bcrypt = require("bcrypt");
+const { OrderModel } = require("../models/OrderModel");
 
 require("dotenv").config();
 
@@ -639,6 +640,74 @@ router.put(
       res.status(500).json({
         success: false,
         message: "Lỗi khi thay đổi mật khẩu.",
+      });
+    }
+  }
+);
+
+// API xóa user
+router.delete(
+  "/delete-user/:id",
+  verifyToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Tìm user trong database
+      const user = await UserModel.findById(id);
+
+      // Kiểm tra nếu user không tồn tại
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Người dùng không tồn tại.",
+        });
+      }
+
+      // Kiểm tra đơn hàng liên quan tới user
+      const userOrders = await OrderModel.find({ userId: id });
+
+      // Nếu tồn tại đơn hàng, xóa tất cả các đơn hàng trước
+      if (userOrders.length > 0) {
+        try {
+          await OrderModel.deleteMany({ userId: id });
+        } catch (orderError) {
+          console.error("Error deleting user's orders:", orderError);
+          return res.status(500).json({
+            success: false,
+            message: "Không thể xóa các đơn hàng liên quan đến người dùng.",
+          });
+        }
+      }
+
+      // Xóa avatar trên Cloudinary nếu tồn tại
+      if (user.avatar) {
+        const publicId = user.avatar.split("/").pop().split(".")[0]; // Lấy public_id từ URL
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (cloudError) {
+          console.error("Error deleting avatar from Cloudinary:", cloudError);
+          return res.status(500).json({
+            success: false,
+            message: "Không thể xóa ảnh avatar trên Cloudinary.",
+          });
+        }
+      }
+
+      // Xóa user khỏi database
+      await UserModel.findByIdAndDelete(id);
+
+      // Trả về kết quả thành công
+      res.status(200).json({
+        success: true,
+        message: "Người dùng và các đơn hàng liên quan đã được xóa thành công.",
+      });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi khi xóa người dùng.",
       });
     }
   }

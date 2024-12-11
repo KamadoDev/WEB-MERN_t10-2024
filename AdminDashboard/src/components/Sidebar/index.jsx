@@ -109,13 +109,20 @@ const Sidebar = () => {
         </Collapse>
 
         {logoWebData?.images?.length > 0 && logoWebData.images[0].url && (
-          <div className="logoWrapper m-3 flex items-center">
-            <img
-              src={logoWebData?.images[0].url}
-              alt={logoWebData?.type}
-              style={{ width: "100%", height: "100%", borderRadius: "5px", objectFit: "cover" }}
-            />
-          </div>
+          <Link to="/">
+            <div className="logoWrapper m-3 flex items-center">
+              <img
+                src={logoWebData?.images[0].url}
+                alt={logoWebData?.type}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "5px",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+          </Link>
         )}
 
         <div className="sidebarTabs px-2 mt-3">

@@ -11,11 +11,7 @@ import { MyContext } from "../../App";
 
 import LinearProgress from "@mui/material/LinearProgress";
 import { Button } from "@mui/material";
-import { getData, postData, putData } from "../../utils/api";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import Collapse from "@mui/material/Collapse";
-import CloseIcon from "@mui/icons-material/Close";
+import { deleteData, getData, putData } from "../../utils/api";
 
 const UserEdit = (props) => {
   const userID = props.userID;
@@ -203,6 +199,52 @@ const UserEdit = (props) => {
       context.setTypeMessage("error");
       context.setOpen(true);
     } finally {
+      context.setOpenDraw(false);
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    // Kiểm tra nếu không có userID
+    if (!userID) {
+      context.setMessage("Không xác định được người dùng để xóa.");
+      context.setTypeMessage("error");
+      context.setOpen(true);
+      return;
+    }
+
+    // Hiển thị xác nhận xóa
+    const confirmDelete = window.confirm(
+      "Bạn có chắc chắn muốn xóa người dùng này?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    // Bắt đầu trạng thái loading
+    setLoading(true);
+    try {
+      const response = await deleteData(`/api/user/delete-user/`, userID);
+
+      // Xử lý phản hồi thành công hoặc thất bại
+      if (response.success) {
+        context.setMessage(response.message);
+        context.setTypeMessage(response.type || "success");
+      } else {
+        context.setMessage(
+          response.message || "Đã xảy ra lỗi khi xóa người dùng."
+        );
+        context.setTypeMessage(response.type || "error");
+      }
+    } catch (error) {
+      // Xử lý lỗi trong quá trình gọi API
+      console.error("Error deleting user:", error);
+      context.setMessage("Đã xảy ra lỗi khi xóa người dùng.");
+      context.setTypeMessage("error");
+    } finally {
+      // Kết thúc trạng thái loading
+      context.setOpenDraw(false);
+      context.setOpen(true);
       setLoading(false);
     }
   };
@@ -222,28 +264,6 @@ const UserEdit = (props) => {
           <h2 className="text-black/55 mb-4 capitalize text-lg">
             Thông tin cần thiết:
           </h2>
-          <Collapse in={context.open} className="position-fixed left-0">
-            <Alert
-              className="text-white"
-              variant="filled"
-              severity={context.TypeMessage === "success" ? "success" : "error"}
-              action={
-                <IconButton
-                  aria-label="close"
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    context.setOpen(false);
-                  }}
-                >
-                  <CloseIcon fontSize="inherit" />
-                </IconButton>
-              }
-              sx={{ mb: 2 }}
-            >
-              {context.Message}
-            </Alert>
-          </Collapse>
           <div className="row">
             <div className="col">
               <div className="form-group">
@@ -418,7 +438,7 @@ const UserEdit = (props) => {
               >
                 <IoIosSave className="mr-1" style={{ fontSize: "25px" }} />
                 <span className="text-sm capitalize">
-                  {loading === true ? "Đang cập nhật..." : "Cập nhật danh mục"}
+                  {loading === true ? "Đang cập nhật..." : "Cập nhật"}
                 </span>
               </Button>
               <Button
@@ -432,6 +452,20 @@ const UserEdit = (props) => {
                 <span className="text-sm capitalize">Hủy</span>
               </Button>
             </div>
+          </div>
+          <div>
+            <Button
+              type="button"
+              className="flex items-center mr-2 py-2"
+              variant="contained"
+              color="error"
+              onClick={handleDeleteUser}
+            >
+              <IoIosClose style={{ fontSize: "25px" }} />
+              <span className="text-sm capitalize">
+              {loading === true ? "Đang xóa..." : "Xóa tài khoản"}
+              </span>
+            </Button>
           </div>
         </div>
       </form>
