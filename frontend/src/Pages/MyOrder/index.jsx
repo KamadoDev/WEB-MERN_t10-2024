@@ -9,54 +9,76 @@ const MyOrder = () => {
   const context = useContext(MyContext);
   const [orders, setOrders] = useState([]); // State để lưu danh sách đơn hàng
   const [loading, setLoading] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
-      await getData(`/api/order/${context.userData.userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).then((response) => {
+      if (!token) {
+        context.setAlertBox({
+          open: true,
+          message: "Vui lòng đăng nhập để xem đơn hàng.",
+          type: "error",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const userId = context.userData?.userId;
+      if (userId) {
+        const response = await getData(`/api/order/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (response.status) {
           console.log("Load my order", response.orders);
           context.setAlertBox({
             open: true,
-            message: response.message, // Lấy message từ response
+            message: response.message,
             type: response.type || "success",
           });
           setOrders(response.orders);
-          setLoading(false);
         } else {
-          console.log(response.message);
           context.setAlertBox({
             open: true,
-            message: response.message, // Lấy message từ response khi lỗi
+            message: response.message,
             type: response.type || "error",
           });
-          setLoading(false);
         }
-      });
+      } else {
+        context.setAlertBox({
+          open: true,
+          message: "Người dùng không xác định.",
+          type: "error",
+        });
+      }
     } catch (error) {
-      console.log("Lỗi khi gửi dữ liệu: ", error.message);
+      console.error("Lỗi khi gửi dữ liệu: ", error.message);
       context.setAlertBox({
         open: true,
-        message: "Đã xảy ra lỗi khi đặt hàng", // Thông báo lỗi khi không gọi được API
+        message: "Đã xảy ra lỗi khi tải đơn hàng.",
         type: "error",
       });
-      setLoading(false);
     } finally {
+      setLoading(false);
       setTimeout(() => {
         context.setAlertBox({
           open: false,
           message: "",
           type: "",
         });
-        setLoading(false);
       }, 5000);
     }
   };
+
+  useEffect(() => {
+    if (context.userData?.userId) {
+      fetchData();
+    }
+  }, [context.userData]);
 
   const cancelOrder = async (id) => {
     try {
@@ -107,10 +129,6 @@ const MyOrder = () => {
       }, 5000);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", {

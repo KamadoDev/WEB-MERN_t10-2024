@@ -52,6 +52,9 @@ const MyAccount = () => {
     image: [],
   });
 
+  const [isSubmittingPass, setIsSubmittingPass] = useState(false);
+  const [isSubmittingInfo, setIsSubmittingInfo] = useState(false);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -106,11 +109,11 @@ const MyAccount = () => {
             ...userData,
           }));
           setAvatar(userData.avatar);
-          context.setAlertBox({
-            open: true,
-            message: response.message,
-            type: "success",
-          });
+          // context.setAlertBox({
+          //   open: true,
+          //   message: response.message,
+          //   type: "success",
+          // });
         } else {
           context.setAlertBox({
             open: true,
@@ -143,6 +146,7 @@ const MyAccount = () => {
   const handleSubmitInfo = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setIsSubmittingInfo(true);
 
     // Tạo FormData mới
     const formData = new FormData();
@@ -160,14 +164,6 @@ const MyAccount = () => {
       file = image[0];
       console.log("Có hình ảnh:", file);
       formData.append("avatar", file); // Thêm ảnh vào formData
-    } else {
-      context.setAlertBox({
-        open: true,
-        message: "Vui lòng chọn ảnh đại diện.",
-        type: "error",
-      });
-      setLoading(false); // Đảm bảo loading tắt ngay lập tức khi không có ảnh
-      return; // Dừng quá trình submit nếu không có ảnh
     }
 
     try {
@@ -210,6 +206,7 @@ const MyAccount = () => {
     } finally {
       // Dừng loading và ẩn thông báo sau 5 giây
       setLoading(false);
+      setIsSubmittingInfo(false);
       setTimeout(() => {
         context.setAlertBox({
           open: false,
@@ -226,6 +223,7 @@ const MyAccount = () => {
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setIsSubmittingPass(true);
 
     // Chuyển payload thành JSON thay vì sử dụng FormData
     const payload = {
@@ -276,6 +274,8 @@ const MyAccount = () => {
         type: "error",
       });
     } finally {
+      setLoading(false);
+      setIsSubmittingPass(false);
       // Dừng loading và ẩn thông báo sau 5 giây
       setTimeout(() => {
         context.setAlertBox({
@@ -284,7 +284,6 @@ const MyAccount = () => {
           type: "",
         });
       }, 5000);
-      setLoading(false);
     }
   };
 
@@ -336,8 +335,10 @@ const MyAccount = () => {
                           label="Tên tài khoản"
                           variant="outlined"
                           fullWidth
+                          name="username"
                           value={formFields.username}
                           onChange={onChangeInput}
+                          disabled={isSubmittingInfo}
                         />
                       </div>
                     </div>
@@ -348,8 +349,10 @@ const MyAccount = () => {
                           label="Họ và tên"
                           variant="outlined"
                           fullWidth
+                          name="fullName"
                           value={formFields.fullName}
                           onChange={onChangeInput}
+                          disabled={isSubmittingInfo}
                         />
                       </div>
                     </div>
@@ -362,8 +365,10 @@ const MyAccount = () => {
                           label="Số điện thoại"
                           variant="outlined"
                           fullWidth
+                          name="phone"
                           value={formFields.phone}
                           onChange={onChangeInput}
+                          disabled={isSubmittingInfo}
                         />
                       </div>
                     </div>
@@ -374,8 +379,10 @@ const MyAccount = () => {
                           label="Email"
                           variant="outlined"
                           fullWidth
+                          name="email"
                           value={formFields.email}
                           onChange={onChangeInput}
+                          disabled={isSubmittingInfo}
                         />
                       </div>
                     </div>
@@ -384,9 +391,9 @@ const MyAccount = () => {
                     <Button
                       type="submit"
                       className="btn-blue bg-red btn-lg btn-big"
-                      disabled={loading}
+                      disabled={isSubmittingInfo}
                     >
-                      {loading ? "Đang cập nhật..." : "Lưu"}
+                      {isSubmittingInfo ? "Đang cập nhật..." : "Lưu"}
                     </Button>
                   </div>
                 </div>
@@ -429,9 +436,9 @@ const MyAccount = () => {
                     <Button
                       type="submit"
                       className="btn-blue bg-red btn-lg btn-big"
-                      disabled={loading}
+                      disabled={isSubmittingPass}
                     >
-                      <span>{loading ? "Đang cập nhật..." : "Lưu"}</span>
+                      <span>{isSubmittingPass ? "Đang cập nhật..." : "Lưu"}</span>
                     </Button>
                   </div>
                 </div>

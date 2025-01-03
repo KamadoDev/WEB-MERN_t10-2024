@@ -228,6 +228,7 @@ router.post("/signup", async (req, res) => {
       phone,
       password: hashedPassword,
       fullName,
+      email: "example@example.com",
     });
 
     await newUser.save();
@@ -485,6 +486,27 @@ router.put(
           success: false,
           message: "Không tìm thấy người dùng.",
         });
+      }
+
+      // Kiểm tra username trùng lặp
+      if (username && username !== user.username) {
+        const existingUser = await UserModel.findOne({ username });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Username đã tồn tại. Vui lòng chọn tên khác.",
+          });
+        }
+      }
+
+      if (phone && phone !== user.phone) {
+        const existingUser = await UserModel.findOne({ phone });
+        if (existingUser && existingUser._id.toString() !== id) {
+          return res.status(400).json({
+            success: false,
+            message: "Số điện thoại đã tồn tại. Vui lòng chọn số khác.",
+          });
+        }
       }
 
       // Kiểm tra email

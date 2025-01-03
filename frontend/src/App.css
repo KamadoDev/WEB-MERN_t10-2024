@@ -214,6 +214,9 @@ img {
 
 .logoWrapper img {
   width: 100%;
+  border-radius: 10px;
+  height: 60px;
+  width: 100%;
 }
 
 /* countryDrop */

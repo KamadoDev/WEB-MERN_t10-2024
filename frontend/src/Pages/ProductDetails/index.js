@@ -405,7 +405,7 @@ const ProductDetails = () => {
                 </div>
 
                 <div className="d-flex align-items-center mt-3">
-                  <QuantityBox onQuantityChange={onQuantityChange} />
+                  <QuantityBox quantity={1} maxQuantity={10} onQuantityChange={onQuantityChange} />
                   <Button
                     onClick={() => addCart(id)}
                     className="d-flex align-items-center btn-cart ml-3 btn-blue btn-lg text-capitalize btn-big btn-round"

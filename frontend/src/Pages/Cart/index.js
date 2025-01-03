@@ -31,7 +31,7 @@ const Cart = () => {
     if (cachedData) {
       const orderCachedData = JSON.parse(cachedData);
       console.log("orderCached data", orderCachedData);
-      if (orderCachedData.userId === context.userData.userId) {
+      if (orderCachedData.userId === context.userData?.userId) {
         try {
           context.setCheckoutCartData(orderCachedData);
           setTimeout(() => {
@@ -106,7 +106,7 @@ const Cart = () => {
       }
 
       const newCartFields = {
-        userId: context.userData.userId,
+        userId: context.userData?.userId,
         productId: productId,
         quantity: newQuantity,
         size: size,
@@ -157,7 +157,7 @@ const Cart = () => {
     try {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
-      const userId = context.userData.userId;
+      const userId = context.userData?.userId;
 
       const response = await deleteData(
         `/api/cart/removeCart/${userId}`,
@@ -207,8 +207,9 @@ const Cart = () => {
         console.error("Token không tồn tại.");
         return;
       }
+      const userId = context.userData?.userId;
       const response = await getData(
-        `/api/cart/getCart/${context.userData.userId}`,
+        `/api/cart/getCart/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -225,7 +226,7 @@ const Cart = () => {
 
   useEffect(() => {
     fetchData();
-  }, [context.userData.userId]); // Phụ thuộc vào userId để gọi lại khi userId thay đổi
+  }, []); // Phụ thuộc vào userId để gọi lại khi userId thay đổi
 
   const handleOrder = () => {
     if (!context.cartData?.items?.length) {
@@ -240,7 +241,7 @@ const Cart = () => {
       appliedDate: appliedDate ? appliedDate : "",
       voucherCode: voucherCode ? voucherCode : "",
       discountPercentage: discountPercentage,
-      userId: context.userData.userId,
+      userId: context.userData?.userId,
     };
 
     // Lưu vào localStorage
@@ -366,6 +367,7 @@ const Cart = () => {
                             <td>
                               <QuantityBox
                                 quantity={item.quantity} // Truyền số lượng ban đầu
+                                maxQuantity={10}
                                 onQuantityChange={(newQuantity) =>
                                   handleQuantityChange(
                                     newQuantity,

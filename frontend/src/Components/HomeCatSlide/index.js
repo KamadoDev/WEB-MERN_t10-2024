@@ -35,7 +35,7 @@ const HomeCatSilde = (props) => {
     <>
       <section className="homeCatSilde">
         <div className="container">
-          <h3 className="mb-3 hd">Danh mục nổi bật</h3>
+          <h3 className="mb-3 hd">Danh mục</h3>
           <Swiper
             slidesPerView={5}
             spaceBetween={10}

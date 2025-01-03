@@ -55,7 +55,7 @@ const SearchPage = () => {
       <div className="container">
         <div className="d-flex align-items-center">
           <div className="info">
-            <h3 className="mb-0 hd">Sản bạn tìm kiếm</h3>
+            <h3 className="mb-0 hd">Sản phẩm bạn tìm kiếm</h3>
           </div>
         </div>
         <div className="product_row productWrap w-100 mt-4">
