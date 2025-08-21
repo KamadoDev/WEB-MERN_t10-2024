@@ -222,13 +222,15 @@ router.post("/signup", async (req, res) => {
     // Mã hóa mật khẩu
     const hashedPassword = await hashPassword(password);
 
+    const tempEmail = `temp_${Date.now()}@example.com`;
+
     // Tạo người dùng mới
     const newUser = new UserModel({
       username,
       phone,
       password: hashedPassword,
       fullName,
-      email: "example@example.com",
+      email: tempEmail,
     });
 
     await newUser.save();
