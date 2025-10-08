@@ -42,6 +42,7 @@ const UserList = (props) => {
     setLoading(true);
     try {
       const response = await deleteData("/api/user", id);
+      console.log("ddang test",response)
       console.log(response);
       if (response.success === true) {
         context.setMessage(response.message);

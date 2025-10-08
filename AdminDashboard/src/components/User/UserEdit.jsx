@@ -224,7 +224,7 @@ const UserEdit = (props) => {
     // Bắt đầu trạng thái loading
     setLoading(true);
     try {
-      const response = await deleteData(`/api/user/delete-user/`, userID);
+      const response = await deleteData(`/api/user/delete-user`, userID);
 
       // Xử lý phản hồi thành công hoặc thất bại
       if (response.success) {
