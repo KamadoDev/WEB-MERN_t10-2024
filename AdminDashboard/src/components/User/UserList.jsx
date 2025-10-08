@@ -41,7 +41,7 @@ const UserList = (props) => {
     window.scrollTo(0, 0);
     setLoading(true);
     try {
-      const response = await deleteData("/api/user/", id);
+      const response = await deleteData("/api/user", id);
       console.log(response);
       if (response.success === true) {
         context.setMessage(response.message);
