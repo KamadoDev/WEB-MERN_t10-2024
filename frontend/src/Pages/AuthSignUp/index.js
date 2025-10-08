@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 import { postData } from "../../utils/api";
+import { handleGoogleSignIn } from "../../utils/firebaseAuth";
 
 const AuthSignUp = () => {
   const context = useContext(MyContext);
@@ -46,6 +47,11 @@ const AuthSignUp = () => {
         message: "",
       });
     }, 500);
+  };
+
+  // Hàm xử lý Google Sign-In trong AuthSignUp
+  const signUpWithGoogle = () => {
+    handleGoogleSignIn(context, history, setAlertBox);
   };
 
   const signUp = async (e) => {
@@ -287,7 +293,7 @@ const AuthSignUp = () => {
               <h6 className="mt-4 text-center font-weight-bold">
                 Hoặc tiếp tục với tài khoản xã hội
               </h6>
-              <Button className="mt-2 loginWithGoogle btn-cancel text-capitalize">
+              <Button onClick={signUpWithGoogle} className="mt-2 loginWithGoogle btn-cancel text-capitalize">
                 <FcGoogle />
                 Đăng nhập bằng google
               </Button>

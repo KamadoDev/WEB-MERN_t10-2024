@@ -419,7 +419,7 @@ const ProductDetails = () => {
                       </>
                     )}
                   </Button>
-                  <Tooltip title="Add to Wishlist" placement="top">
+                  {/* <Tooltip title="Add to Wishlist" placement="top">
                     <Button className="btn-blue btn-lg btn-circle ml-3">
                       <FaRegHeart />
                     </Button>
@@ -428,7 +428,7 @@ const ProductDetails = () => {
                     <Button className="btn-blue btn-lg btn-circle ml-3">
                       <MdOutlineCompareArrows />
                     </Button>
-                  </Tooltip>
+                  </Tooltip> */}
                 </div>
               </div>
             </div>
