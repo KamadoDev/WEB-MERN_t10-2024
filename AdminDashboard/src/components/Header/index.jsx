@@ -11,6 +11,7 @@ import { useContext, useState } from "react";
 import SearchBox from "../SearchBox";
 import { MyContext } from "../../App";
 import { useNavigate } from "react-router-dom";
+import { postData } from "../../utils/api";
 
 const Header = () => {
   const context = useContext(MyContext);
@@ -25,21 +26,44 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Xóa token và thông tin người dùng
-    localStorage.clear();
-    sessionStorage.clear();
+  const handleLogout = async () => {
+    try {
+      // ✨ BƯỚC 1: GỌI API ĐỂ SERVER XÓA HTTP-ONLY COOKIE ("token")
+      // Đường dẫn API cần khớp với router server của bạn.
+      const response = await postData("/api/user/signout", {});
 
-    // Cập nhật trạng thái login
-    context.setIsLogin(false);
-    context.setUserData({});
-    context.setMessage("Đăng xuất thành công");
-    context.setTypeMessage("success");
-    context.setOpen(true);
-    setTimeout(() => {
-      // Chuyển hướng về trang login
-      navigate("/authen/login");
-    }, 1000);
+      // Kiểm tra kết quả từ Server
+      if (response && response.success) {
+
+        // BƯỚC 2: Xóa thông tin người dùng khỏi storage 
+        // (Chỉ xóa 'user', không cần xóa 'token' vì nó không còn ở đây)
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // BƯỚC 3: Cập nhật trạng thái Context và hiển thị thông báo
+        context.setIsLogin(false);
+        context.setUserData({});
+        context.setMessage(response.message || "Đăng xuất thành công");
+        context.setTypeMessage("success");
+        context.setOpen(true);
+
+        // BƯỚC 4: Chuyển hướng
+        setTimeout(() => {
+          navigate("/authen/login");
+        }, 1000);
+      } else {
+        // Xử lý trường hợp Server trả về lỗi
+        context.setMessage(response?.message || "Lỗi đăng xuất từ Server.");
+        context.setTypeMessage("error");
+        context.setOpen(true);
+      }
+    } catch (error) {
+      // Xử lý lỗi kết nối mạng hoặc lỗi khác
+      console.error("Lỗi gọi API đăng xuất:", error);
+      context.setMessage("Đã xảy ra lỗi hệ thống khi đăng xuất.");
+      context.setTypeMessage("error");
+      context.setOpen(true);
+    }
   };
 
   return (

@@ -1,266 +1,110 @@
+// api.js - Phiên bản Tối ưu hóa (Clean Code)
+
 import axios from "axios";
 
-// Lấy URL từ biến môi trường
 const apiUrl = import.meta.env.VITE_BASE_URL;
-console.log('xin chào', import.meta.env.VITE_BASE_URL) // "123"
+
+// ✨ TẠO AXIOS INSTANCE: Áp dụng baseURL và withCredentials một lần
+const apiInstance = axios.create({
+    baseURL: apiUrl,
+    withCredentials: true, // Áp dụng cho TẤT CẢ request
+});
+
+// ********** HÀM GET **********
 export const getData = async (url, id) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const response = await axios.get(`${apiUrl}${url}`, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Thêm token vào header
-      },
-      params: { id },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        const response = await apiInstance.get(url, { // Chỉ truyền url còn lại do instance lo
+            params: { id },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
+// ********** HÀM POST **********
 export const postData = async (url, formData, hasFile = false) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const headers = hasFile
-      ? { Authorization: `Bearer ${token}` }
-      : {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
-    const response = await axios.post(`${apiUrl}${url}`, formData, { headers });
-    return response.data;
-  } catch (error) {
-    console.error("Error posting data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        const headers = hasFile
+            ? {}
+            : { "Content-Type": "application/json" };
+
+        const response = await apiInstance.post(url, formData, { headers });
+        return response.data;
+    } catch (error) {
+        console.error("Error posting data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
+// ********** HÀM PUT (multipart/form-data) **********
 export const putData = async (url, formData) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const response = await axios.put(`${apiUrl}${url}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`, // Thêm token vào header
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        const response = await apiInstance.put(url, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
+// ********** HÀM PUT (application/json) **********
 export const putDataJson = async (url, json) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const response = await axios.put(`${apiUrl}${url}`, json, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Thêm token vào header
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        const response = await apiInstance.put(url, json, {
+            headers: { "Content-Type": "application/json" },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
+// ********** HÀM DELETE (Theo ID trong URL) **********
 export const deleteData = async (url, id) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const response = await axios.delete(`${apiUrl}${url}/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Thêm token vào header
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error deleting data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        // Cần truyền đủ cả URL và ID
+        const response = await apiInstance.delete(`${url}/${id}`); 
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
+// ********** HÀM DELETE IMAGE (Sử dụng POST với publicId) **********
 export const deleteImage = async (url, publicId) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-  try {
-    const response = await axios.post(
-      `${apiUrl}${url}`,
-      { publicId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Thêm token vào header
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error deleting data:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      return error.response.data;
+    try {
+        const response = await apiInstance.post(
+            url,
+            { publicId }
+            // Không cần thêm headers, mặc định là application/json
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting data:", error.message);
+        if (error.response) {
+            return error.response.data;
+        }
+        return null;
     }
-    return null;
-  }
 };
-
-
-
-// import axios from "axios";
-
-// export const getData = async (url, id) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const response = await axios.get(`/api${url}`, {
-//       headers: {
-//         Authorization: `Bearer ${token}`, // Thêm token vào header
-//       },
-//       params: { id },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };
-
-// export const postData = async (url, formData, hasFile = false) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const headers = hasFile
-//       ? { Authorization: `Bearer ${token}` }
-//       : {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${token}`,
-//         };
-//     const response = await axios.post(`/api${url}`, formData, { headers });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error posting data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };
-
-// export const putData = async (url, formData) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const response = await axios.put(`/api${url}`, formData, {
-//       headers: {
-//         "Content-Type": "multipart/form-data",
-//         Authorization: `Bearer ${token}`, // Thêm token vào header
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error updating data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };
-
-// export const putDataJson = async (url, json) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const response = await axios.put(`/api${url}`, json, {
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`, // Thêm token vào header
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error updating data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };
-
-// export const deleteData = async (url, id) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const response = await axios.delete(`/api${url}/${id}`, {
-//       headers: {
-//         Authorization: `Bearer ${token}`, // Thêm token vào header
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error deleting data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };
-
-// export const deleteImage = async (url, publicId) => {
-//   const token =
-//     localStorage.getItem("token") || sessionStorage.getItem("token");
-//   try {
-//     const response = await axios.post(
-//       `/api${url}`,
-//       { publicId },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`, // Thêm token vào header
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error deleting data:", error.message);
-//     if (error.response) {
-//       console.error("Response data:", error.response.data);
-//       return error.response.data;
-//     }
-//     return null;
-//   }
-// };

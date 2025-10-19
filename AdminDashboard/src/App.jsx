@@ -35,29 +35,43 @@ const App = () => {
     fullName: "",
     userId: "",
     avatar: "",
+    role: "",
   });
   const navigate = useNavigate();
 
-  
+
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
+    // KHÔNG CẦN KIỂM TRA TOKEN TRONG LOCAL STORAGE NỮA
+    const userFromLocalStorage = localStorage.getItem("user");
+    const userFromSessionStorage = sessionStorage.getItem("user");
 
-    if (token) {
+    let user = null;
+
+    if (userFromLocalStorage) {
+      user = JSON.parse(userFromLocalStorage);
+    } else if (userFromSessionStorage) {
+      user = JSON.parse(userFromSessionStorage);
+    }
+
+    if (user && user.userId) { // Kiểm tra nếu có thông tin user hợp lệ
+      // Đã đăng nhập
       setIsLogin(true);
-      const userFromLocalStorage = localStorage.getItem("user");
-      const userFromSessionStorage = sessionStorage.getItem("user");
-
-      const user = userFromLocalStorage
-        ? JSON.parse(userFromLocalStorage)
-        : userFromSessionStorage
-        ? JSON.parse(userFromSessionStorage)
-        : null;
       setUserData(user);
+
+      // OPTIONAL: Kiểm tra và chuyển hướng nếu không phải admin (nếu cần)
+      if (user.role !== "admin") {
+          // Nếu đây là trang Admin, có thể chuyển hướng về trang login hoặc trang lỗi
+          navigate("/authen/login"); 
+      }
+
     } else {
+      // Chưa đăng nhập (Không tìm thấy user data)
       setIsLogin(false);
-      navigate("/authen/login");
+      // Chỉ chuyển hướng nếu không phải là trang đăng nhập hoặc trang liên quan
+      if (!window.location.pathname.startsWith('/authen')) {
+        navigate("/authen/login");
+      }
     }
   }, [navigate]);
 
@@ -99,11 +113,10 @@ const App = () => {
           </div>
         )}
         <div
-          className={` ${
-            isShowHeaderFooter === true
-              ? "w-[100%]"
-              : "content_right w-[85%] px-3"
-          } `}
+          className={` ${isShowHeaderFooter === true
+            ? "w-[100%]"
+            : "content_right w-[85%] px-3"
+            } `}
         >
           {isShowHeaderFooter === false && (
             <>

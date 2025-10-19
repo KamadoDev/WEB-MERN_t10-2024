@@ -11,10 +11,17 @@ import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 import { postData } from "../../utils/api";
 import { handleGoogleSignIn } from "../../utils/firebaseAuth";
+import { useRef } from "react";
 
 const AuthSignUp = () => {
   const context = useContext(MyContext);
   const history = useNavigate();
+  const usernameRef = useRef();
+  const phoneRef = useRef();
+  const fullNameRef = useRef();
+  const passwordRef = useRef();
+  const confirmPasswordRef = useRef();
+
   const [formFields, setFormfields] = useState({
     username: "",
     phone: "",
@@ -119,12 +126,30 @@ const AuthSignUp = () => {
       if (confirmPassword === password) {
         const response = await postData("/api/user/signup", formFields);
         if (response.success === false) {
+          if (response.details) {
+            // Focus vào input đầu tiên bị lỗi
+            if (response.details.some(d => d.toLowerCase().includes("tên tài khoản")))
+              usernameRef.current.focus();
+            else if (response.details.some(d => d.toLowerCase().includes("số điện thoại")))
+              phoneRef.current.focus();
+            else if (response.details.some(d => d.toLowerCase().includes("họ")))
+              fullNameRef.current.focus();
+            else if (response.details.some(d => d.toLowerCase().includes("mật khẩu không khớp")))
+              confirmPasswordRef.current.focus();
+            else if (response.details.some(d => d.toLowerCase().includes("mật khẩu")))
+              passwordRef.current.focus();
+          }
+          // Gộp tất cả lỗi chi tiết thành 1 chuỗi hiển thị
+          const message =
+            response.details?.join("\n") || response.message;
+
           setAlertBox({
             open: true,
             closing: false,
             status: "error",
-            message: response.message,
+            message,
           });
+          setTimeout(() => closeAlert(), 5000);
         } else {
           setAlertBox({
             open: true,
@@ -197,6 +222,7 @@ const AuthSignUp = () => {
                   <div className="form-group">
                     <TextField
                       // error
+                      inputRef={usernameRef}
                       className="w-100"
                       id="standard-basic"
                       label="Tên tài khoản"
@@ -212,6 +238,7 @@ const AuthSignUp = () => {
                   <div className="form-group">
                     <TextField
                       // error
+                      inputRef={phoneRef}
                       className="w-100"
                       id="standard-basic"
                       label="Số điện thoại"
@@ -227,6 +254,7 @@ const AuthSignUp = () => {
               <div className="form-group">
                 <TextField
                   // error
+                  inputRef={fullNameRef}
                   className="w-100"
                   id="standard-basic"
                   label="Họ và tên"
@@ -240,6 +268,7 @@ const AuthSignUp = () => {
               <div className="form-group">
                 <TextField
                   // error
+                  inputRef={passwordRef}
                   className="w-100"
                   id="standard-basic"
                   label="Mật khẩu"
@@ -255,6 +284,7 @@ const AuthSignUp = () => {
               <div className="form-group">
                 <TextField
                   // error
+                  inputRef={confirmPasswordRef}
                   className="w-100"
                   id="standard-basic"
                   label="Xác nhận lại mật khẩu"

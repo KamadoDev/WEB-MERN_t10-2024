@@ -92,7 +92,7 @@ const SignIn = () => {
       }
 
       // Gửi dữ liệu đến API
-      const response = await postData("/api/user/authencation/signin", {
+      const response = await postData("/api/user/authentication/signin", {
         usernameOrPhone,
         password,
         rememberMe, // Chuyển rememberMe vào API
@@ -120,14 +120,13 @@ const SignIn = () => {
           phone: response.user?.phone,
           avatar: response.user?.avatar,
           userId: response.user?._id,
+          role: response.user?.role,
         };
 
         // Lưu token và user vào localStorage hoặc sessionStorage dựa trên rememberMe
         if (rememberMe) {
-          localStorage.setItem("token", response.token); // Lưu token lâu dài
           localStorage.setItem("user", JSON.stringify(user)); // Lưu user lâu dài
         } else {
-          sessionStorage.setItem("token", response.token); // Lưu token tạm thời
           sessionStorage.setItem("user", JSON.stringify(user)); // Lưu user tạm thời
         }
 

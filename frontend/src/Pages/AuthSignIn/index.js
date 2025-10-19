@@ -14,6 +14,7 @@ import { postData } from "../../utils/api";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { firebaseApp } from "../../firebase";
 import { handleGoogleSignIn } from "../../utils/firebaseAuth";
+import { useRef } from "react";
 
 const provider = new GoogleAuthProvider();
 const auth = getAuth(firebaseApp);
@@ -21,6 +22,8 @@ const auth = getAuth(firebaseApp);
 const AuthSignIn = () => {
   const context = useContext(MyContext);
   const history = useNavigate();
+  const usernameInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
 
   const [formFields, setFormfields] = useState({
     usernameOrPhone: "",
@@ -87,12 +90,27 @@ const AuthSignIn = () => {
         password,
       });
       if (response.success === false) {
+        // Nếu có chi tiết lỗi (Joi validation)
+        const detailedMessage = response.details
+          ? response.details.join("\n") // Gộp các lỗi xuống dòng
+          : response.message;
+
         setAlertBox({
           open: true,
           closing: false,
           status: "error",
-          message: response.message,
+          message: detailedMessage,
         });
+
+        if (response.details) {
+          if (response.details.some((d) => d.toLowerCase().includes("tên đăng nhập")))
+            usernameInputRef.current?.focus();
+          else if (response.details.some((d) => d.toLowerCase().includes("mật khẩu")))
+            passwordInputRef.current?.focus();
+        }
+
+        setTimeout(() => closeAlert(), 6000);
+        return;
       } else {
         console.log("SignIn data", response.iat);
 
@@ -111,8 +129,7 @@ const AuthSignIn = () => {
           userId: response.user?._id,
         };
 
-        sessionStorage.setItem("token", response.token); // Lưu token tạm thời
-        sessionStorage.setItem("user", JSON.stringify(user)); // Lưu user tạm thời
+        sessionStorage.setItem("user", JSON.stringify(response.user));
 
         // Chuyển hướng sau khi đăng nhập thành công
         setTimeout(() => {
@@ -131,9 +148,9 @@ const AuthSignIn = () => {
   };
 
   // Hàm xử lý Google Sign-In trong AuthSignUp
-    const signInWithGoogle = () => {
-      handleGoogleSignIn(context, history, setAlertBox);
-    };
+  const signInWithGoogle = () => {
+    handleGoogleSignIn(context, history, setAlertBox);
+  };
 
   useEffect(() => {
     context.setisHeaderFooterShow(false);
@@ -177,6 +194,7 @@ const AuthSignIn = () => {
               )}
               <div className="form-group">
                 <TextField
+                  inputRef={usernameInputRef}
                   className="w-100"
                   id="standard-basic"
                   label="Tên tài khoản hoặc số điện thoại"
@@ -189,6 +207,7 @@ const AuthSignIn = () => {
               </div>
               <div className="form-group">
                 <TextField
+                  inputRef={passwordInputRef}
                   className="w-100"
                   id="standard-basic"
                   label="Mật khẩu"

@@ -18,6 +18,8 @@ const fs = require("fs");
 const { ppid } = require("process");
 const bcrypt = require("bcrypt");
 const { OrderModel } = require("../models/OrderModel");
+const { validateSignup, validateSignin } = require("../middlewares/validate");
+const { authLimiter } = require("../middlewares/authRateLimit");
 
 require("dotenv").config();
 
@@ -152,9 +154,9 @@ router.delete("/:id", verifyToken, checkAdminOrOwner, async (req, res) => {
   }
 });
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", authLimiter, validateSignup, async (req, res) => {
   try {
-    const { username, phone, password, fullName } = req.body;
+    const { username, phone, password, fullName, confirmPassword } = req.body;
 
     // Kiểm tra các trường bắt buộc
     const checkRequiredFields = (fields) => {
@@ -170,11 +172,21 @@ router.post("/signup", async (req, res) => {
       phone,
       password,
       fullName,
+      confirmPassword,
     });
     if (missingField) {
       return res.status(400).json({
         success: false,
         message: missingField,
+        type: "error",
+      });
+    }
+
+    // Kiểm tra mật khẩu và xác nhận mật khẩu
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu và xác nhận mật khẩu không khớp.",
         type: "error",
       });
     }
@@ -210,7 +222,7 @@ router.post("/signup", async (req, res) => {
     }
 
     // Kiểm tra nếu người dùng đã tồn tại
-    const existingPhone = await UserModel.findOne({ phone });
+    const existingPhone = await UserModel.findOne({ $or: [{ username }, { phone }] });
     if (existingPhone) {
       return res.status(400).json({
         success: false,
@@ -241,6 +253,14 @@ router.post("/signup", async (req, res) => {
     // Tạo token cho người dùng
     const token = generateToken(newUser);
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // 🔐 Chỉ bật HTTPS ở production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ Cho phép cross-site khi dev
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+
+
     res.status(201).json({
       message: "Đăng ký thành công",
       user: sanitizedUser,
@@ -251,7 +271,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/signin", async (req, res) => {
+router.post("/signin", authLimiter, validateSignin, async (req, res) => {
   try {
     const { usernameOrPhone, password } = req.body;
 
@@ -309,6 +329,15 @@ router.post("/signin", async (req, res) => {
     // Tạo token JWT
     const token = generateToken(user);
 
+    // 🧁 Gửi token qua cookie HTTP-only
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // 🔐 Chỉ bật HTTPS ở production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ Cho phép cross-site khi dev
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+
+
     // Trả về thông tin người dùng và token
     res.status(200).json({
       success: true,
@@ -321,7 +350,7 @@ router.post("/signin", async (req, res) => {
   }
 });
 
-router.post("/authencation/signin", async (req, res) => {
+router.post("/authentication/signin", async (req, res) => {
   try {
     const { usernameOrPhone, password, rememberMe } = req.body;
 
@@ -387,6 +416,13 @@ router.post("/authencation/signin", async (req, res) => {
     // Tạo token JWT
     const token = generateToken(user);
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // 🔐 Chỉ bật HTTPS ở production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ Cho phép cross-site khi dev
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+
     // Xóa mật khẩu trước khi trả về
     const sanitizedUser = user.toObject();
     delete sanitizedUser.password;
@@ -407,49 +443,49 @@ router.post("/authWithGoogle", async (req, res) => {
   const { fullName, email, images } = req.body;
 
   try {
-    // Check if the user exists in the database
-    const existingUser = await UserModel.findOne({ email: email });
+    let existingUser = await UserModel.findOne({ email: email });
 
     if (!existingUser) {
-      // Handle the case where the user does not exist, and create a new user
-      const username = fullName.split(" ").join("").toLowerCase(); // Create a simple username from fullName
+      // 1. Tạo user mới (Logic tạo username, phone, password giữ nguyên)
+      const username = fullName.split(" ").join("").toLowerCase();
+      const randomPhone = `034${Math.floor(1000000 + Math.random() * 9000000)}`;
+      const randomPassword = Math.random().toString(36).slice(-8);
 
-      // Generate a random phone number
-      const randomPhone = `034${Math.floor(1000000 + Math.random() * 9000000)}`; // Random 7-digit phone number
-
-      const user = new UserModel({
-        username, // Ensure a username is always generated
+      existingUser = new UserModel({ // Gán vào existingUser để sử dụng chung logic
+        username: `temp_${username}`, // Nên thêm tiền tố để tránh trùng lặp ban đầu
         fullName,
         email,
-        phone: randomPhone, // Use the generated random phone
-        password: "PasswordGoogle@12", // Set password to null as Google sign-in doesn’t provide one
+        phone: randomPhone,
+        password: randomPassword,
         avatar: images,
         role: "user",
         isActive: true,
       });
 
-      // Save user to the database
-      await user.save();
-
-      // Generate a token for the new user
-      const token = generateToken(user);
-
-      return res.status(201).json({
-        success: true,
-        message: "Đăng ký thành công.",
-        user,
-        token,
-      });
-    } else {
-      // If user exists, generate a token for the existing user
-      const token = generateToken(existingUser);
-      return res.status(200).json({
-        success: true,
-        message: "Đăng nhập thành công.",
-        user: existingUser,
-        token,
-      });
+      await existingUser.save();
     }
+
+    // 2. GENERATE TOKEN (Chắc chắn token được tạo sau khi user tồn tại/được tạo)
+    const token = generateToken(existingUser);
+
+    // 3. ĐẶT COOKIE (Sử dụng chung cho cả đăng ký mới và đăng nhập cũ)
+    res.cookie("token", token, { // Tên cookie nên khớp với tên token trong code check của bạn (giả sử là "token")
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      // Lưu ý: SameSite=None + Secure là bắt buộc nếu domain FE và BE khác nhau
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+
+    // 4. TRẢ VỀ RESPONSE
+    return res.status(200).json({ // Dùng 200 cho cả 2 trường hợp để client dễ xử lý
+      success: true,
+      message: existingUser.isNew ? "Đăng ký thành công." : "Đăng nhập thành công.",
+      user: existingUser,
+      // KHÔNG NÊN trả về token nếu dùng cookie (cookie đã tự gửi)
+      // Nếu bạn vẫn cần token cho việc lưu FE, có thể giữ lại, nhưng không khuyến khích.
+    });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -736,5 +772,25 @@ router.delete(
     }
   }
 );
+
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user.id).select("-password");
+    if (!user)
+      return res.status(404).json({ success: false, message: "User not found" });
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.post("/signout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+  });
+  res.json({ success: true, message: "Đăng xuất thành công" });
+});
 
 module.exports = router;

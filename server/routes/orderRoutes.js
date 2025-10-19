@@ -8,6 +8,9 @@ const { OrderModel } = require("../models/OrderModel");
 const { CartModel } = require("../models/CartModel"); // Import CartModel
 const router = express.Router();
 
+const { validateOrder } = require("../middlewares/validate");
+
+
 // API lấy danh sách đơn hàng với phân trang
 router.get("/", verifyToken, async (req, res) => {
   try {
@@ -150,7 +153,7 @@ router.get("/:userId", verifyToken, async (req, res) => {
   }
 });
 
-router.post("/create", verifyToken, async (req, res) => {
+router.post("/create", validateOrder, verifyToken, async (req, res) => {
   try {
     const {
       fullName,

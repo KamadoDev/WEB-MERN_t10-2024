@@ -6,6 +6,11 @@ import { useContext } from "react";
 import { MyContext } from "../../../App";
 import { useNavigate } from "react-router-dom";
 
+import Alert from "@mui/material/Alert";
+import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close"; // Icon đóng thông báo
+
 const SearchBox = () => {
   const suggestions = [
     "Tìm kiếm sản phẩm... Ví dụ: Áo thun",
@@ -53,6 +58,13 @@ const SearchBox = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate();
 
+  const [AlertBox, setAlertBox] = useState({
+    open: false, // Trạng thái mở/đóng
+    closing: false, // Dùng cho hiệu ứng Collapse
+    status: "error", // severity: success, info, warning, error
+    message: "", // Nội dung thông báo
+  });
+
   const onChangeValue = (e) => {
     e.preventDefault();
     setSearchFields(e.target.value);
@@ -65,7 +77,7 @@ const SearchBox = () => {
 
       // Kiểm tra nếu phản hồi thành công và có dữ liệu
       if (response.success) {
-        console.log("Tìm kiếm", response);
+        console.log("Tìm kiếm", response.message);
         context.setSearchQuery(searchFields); // Cập nhật từ khóa tìm kiếm
         context.setSearchData({
           items: response.items,
@@ -75,6 +87,12 @@ const SearchBox = () => {
         navigate("/search"); // Chuyển hướng đến trang kết quả
       } else {
         console.log("Không có sản phẩm nào tìm thấy");
+        setAlertBox({
+          open: true,
+          status: "error", // Sẽ hiển thị màu đỏ/error
+          message: response.message || "Đã xảy ra lỗi khi tìm kiếm.",
+        });
+        context.setSearchData(null); // Xóa dữ liệu tìm kiếm
       }
     } catch (error) {
       console.error("Đã xảy ra lỗi khi tìm kiếm:", error);
@@ -83,6 +101,37 @@ const SearchBox = () => {
 
   return (
     <>
+      {/* 👈 ĐẶT COMPONENT ALERT Ở ĐÂY */}
+      {AlertBox.open && (
+        <Collapse
+          in={AlertBox.open}
+          // Xử lý khi hiệu ứng đóng hoàn tất
+          onExited={() => setAlertBox({ ...AlertBox, closing: false })}
+        >
+          <Alert
+            severity={AlertBox.status}
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  setAlertBox((prev) => ({
+                    ...prev,
+                    open: false, // Kích hoạt hiệu ứng đóng của Collapse
+                  }));
+                }}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+            sx={{ mb: 2 }}
+          >
+            {AlertBox.message}
+          </Alert>
+        </Collapse>
+      )}
+
       <div className="headerSearch ml-3 mr-3">
         <input
           type="text"

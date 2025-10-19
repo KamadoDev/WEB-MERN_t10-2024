@@ -98,12 +98,6 @@ const Cart = () => {
   const updateCart = async (productId, newQuantity, size, color) => {
     setLoadingCart(true);
     try {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (!token) {
-        console.error("Token không tồn tại.");
-        return;
-      }
 
       const newCartFields = {
         userId: context.userData?.userId,
@@ -113,11 +107,7 @@ const Cart = () => {
         color: color,
       };
 
-      const response = await putDataOne(`/api/cart/updateCart`, newCartFields, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Thay bằng token thật
-        },
-      });
+      const response = await putDataOne(`/api/cart/updateCart`, newCartFields);
       console.log("Response from server:", response);
       if (response.status === true) {
         // context.setAlertBox({
@@ -155,18 +145,12 @@ const Cart = () => {
   const removeCart = async (productId) => {
     setLoadingCart(true);
     try {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
+
       const userId = context.userData?.userId;
 
       const response = await deleteData(
         `/api/cart/removeCart/${userId}`,
         { productId }, // Truyền body
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
       );
 
       if (response.status) {
@@ -201,20 +185,14 @@ const Cart = () => {
 
   const fetchData = async () => {
     try {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (!token) {
-        console.error("Token không tồn tại.");
+      // ✨ Kiểm tra userId
+      const userId = context.userData?.userId;
+      if (!userId) {
+        console.error("User ID không tồn tại.");
         return;
       }
-      const userId = context.userData?.userId;
       const response = await getData(
         `/api/cart/getCart/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
       );
       console.log("Dữ liệu giỏ hàng:", response);
       context.setCartData(response); // Cập nhật dữ liệu giỏ hàng
@@ -355,11 +333,11 @@ const Cart = () => {
                                 <div>
                                   {item.productId.discount > 0
                                     ? formatCurrency(
-                                        calculator(
-                                          item.productId.price,
-                                          item.productId.discount
-                                        )
+                                      calculator(
+                                        item.productId.price,
+                                        item.productId.discount
                                       )
+                                    )
                                     : ""}
                                 </div>
                               </div>
