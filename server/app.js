@@ -1,95 +1,58 @@
-// ---------------------------
-// 🔒 Secure Express Server
-// ---------------------------
-const express = require("express");
-const mongoose = require("mongoose");
-const helmet = require("helmet");
-const cors = require("cors");
-const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
-const hpp = require("hpp");
-const cookieParser = require('cookie-parser');
+import express from "express";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import hpp from "hpp";
+import dotenv from "dotenv";
 
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
+
+// -----------------------------
+// ⚙️ Basic setup
+// -----------------------------
 app.use(express.json({ limit: "10kb" }));
-app.use(cookieParser()); 
+app.disable("x-powered-by"); // ẩn thông tin framework
+app.set("etag", false);
 
-app.use(xss());
-app.use(hpp());
-app.disable("x-powered-by");
-
-// Logging (nâng cao)
-const morgan = require("morgan");
-if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev")); // log request khi dev
-}
-
-// ---------------------------
-// 🌐 Cấu hình CORS an toàn
-// ---------------------------
+// -----------------------------
+// 🌐 CORS cấu hình an toàn
+// -----------------------------
 const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "https://runshop-fixed.netlify.app",
-  "https://runshop-admin-fixed.netlify.app",
+  "https://runshop.netlify.app",
+  "https://runshop-admin.netlify.app",
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn("❌ Blocked CORS request from:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
-// ---------------------------
-// 🧱 Bảo mật Header với Helmet
-// ---------------------------
-app.use(helmet());
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-eval'",
-        "https://www.googletagmanager.com",
-        "https://ssl.google-analytics.com",
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com",
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        `https://res.cloudinary.com/${process.env.CLOUDINARY_NAME}/`,
-      ],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: [
-        "'self'",
-        "http://localhost:4000",
-        "https://runshop.netlify.app",
-        "https://runshop-admin.netlify.app",
-      ],
-      frameAncestors: ["'none'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("❌ Origin not allowed by CORS"));
+      }
     },
-    reportOnly: false, // ✅ Chính thức áp dụng
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// -----------------------------
+// 🧱 Helmet - Security Headers
+// -----------------------------
+app.use(helmet.hidePoweredBy());
+app.use(helmet.noSniff());
+app.use(helmet.frameguard({ action: "deny" })); // chống clickjacking
+app.use(helmet.xssFilter());
+app.use(hpp());
+app.use(mongoSanitize());
+app.use(xss());
+
+// ✅ HSTS - Chỉ hoạt động khi HTTPS
 app.use(
   helmet.hsts({
     maxAge: 31536000,
@@ -98,64 +61,66 @@ app.use(
   })
 );
 
-// ---------------------------
-// 🧩 Middleware bảo vệ bổ sung
-// ---------------------------
-app.use(mongoSanitize());
+// ✅ Content Security Policy - KHÔNG còn unsafe-inline/eval
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": [
+        "'self'",
+        "https://www.googletagmanager.com",
+        "https://ssl.google-analytics.com",
+      ],
+      "style-src": [
+        "'self'",
+        "https://fonts.googleapis.com",
+      ],
+      "img-src": [
+        "'self'",
+        "data:",
+        `https://res.cloudinary.com/${process.env.CLOUDINARY_NAME}/`,
+      ],
+      "font-src": ["'self'", "https://fonts.gstatic.com"],
+      "connect-src": [
+        "'self'",
+        "https://runshop.netlify.app",
+        "https://runshop-admin.netlify.app",
+        "http://localhost:4000",
+      ],
+      "object-src": ["'none'"],
+      "frame-ancestors": ["'none'"],
+      "form-action": ["'self'"],
+      "base-uri": ["'self'"],
+      "upgrade-insecure-requests": [],
+    },
+    reportOnly: false,
+  })
+);
+
+// -----------------------------
+// 🚦 Rate Limit
+// -----------------------------
 app.use(
   rateLimit({
-    windowMs: 60 * 1000,
-    max: 100,
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
     message: "Too many requests, please try again later.",
   })
 );
 
-// ---------------------------
-// 📦 Routes
-// ---------------------------
-const routes = {
-  user: require("./routes/userRoutes"),
-  cart: require("./routes/cartRoutes"),
-  category: require("./routes/categoriesRoutes"),
-  subCategory: require("./routes/subCategoriesRoutes"),
-  products: require("./routes/productsRoutes"),
-  voucher: require("./routes/voucherRoutes"),
-  favorite: require("./routes/favoriteProductRoutes"),
-  review: require("./routes/reviewRoutes"),
-  order: require("./routes/orderRoutes"),
-  slideBanner: require("./routes/slideBannerRoutes"),
-  search: require("./routes/searchRoutes"),
-  contact: require("./routes/contactRoutes"),
-  logoWeb: require("./routes/logoWebRoutes"),
-  
-};
-
-for (const [key, route] of Object.entries(routes)) {
-  app.use(`/api/${key}`, route);
-}
-
-// ---------------------------
-// ⚙️ Xử lý lỗi toàn cục
-// ---------------------------
-app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
-  res.status(500).json({
-    success: false,
-    message: "Internal server error",
-  });
+// -----------------------------
+// ✅ Route test
+// -----------------------------
+app.get("/", (req, res) => {
+  res.send("✅ CSP, HSTS, XSS, CORS and Headers are fully secured");
 });
 
-// ---------------------------
-// 🗄️ Kết nối CSDL
-// ---------------------------
-mongoose
-  .connect(process.env.CONNECTION_STRING)
-  .then(() => {
-    console.log("✅ Đã kết nối cơ sở dữ liệu MongoDB");
-    app.listen(process.env.PORT, () => {
-      console.log(`🚀 Server đang chạy tại http://localhost:${process.env.PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ Lỗi kết nối cơ sở dữ liệu:", err);
-  });
+// -----------------------------
+// 🚀 Start server
+// -----------------------------
+app.listen(process.env.PORT || 4000, () => {
+  console.log(`✅ Server running at http://localhost:${process.env.PORT || 4000}`);
+});
+
+export default app;
